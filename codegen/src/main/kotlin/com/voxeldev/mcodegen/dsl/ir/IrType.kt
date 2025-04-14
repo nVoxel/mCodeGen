@@ -1,5 +1,9 @@
 package com.voxeldev.mcodegen.dsl.ir
 
+/**
+ * Base class for all types in the IR (Intermediate Representation) system.
+ * This class represents the type system used in the code generation process.
+ */
 sealed interface IrType : IrElement {
     val isNullable: Boolean
 }
@@ -20,6 +24,10 @@ data class IrTypePrimitive(
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrType
 
+/**
+ * Represents a function type in the IR (Intermediate Representation) system.
+ * Function types represent the signature of a function, including its parameter types and return type.
+ */
 data class IrFunctionType(
     val parameterTypes: List<IrType>,
     val returnType: IrType,

@@ -1,5 +1,10 @@
 package com.voxeldev.mcodegen.dsl.ir
 
+/**
+ * Represents a class in the IR (Intermediate Representation) system.
+ * This class contains all the necessary information to generate a class definition,
+ * including its name, visibility, methods, and other properties.
+ */
 data class IrClass(
     val name: String,
     val kind: IrClassKind,

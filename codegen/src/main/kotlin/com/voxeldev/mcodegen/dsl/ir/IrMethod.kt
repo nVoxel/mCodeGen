@@ -1,5 +1,10 @@
 package com.voxeldev.mcodegen.dsl.ir
 
+/**
+ * Represents a method in the IR (Intermediate Representation) system.
+ * This class contains all the necessary information to generate a method definition,
+ * including its name, return type, parameters, visibility, and body statements.
+ */
 data class IrMethod(
     val name: String,
     val returnType: IrType,
@@ -14,6 +19,10 @@ data class IrMethod(
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrElement
 
+/**
+ * Represents a method parameter in the IR (Intermediate Representation) system.
+ * This class contains information about a method parameter, including its name and type.
+ */
 data class IrParameter(
     val name: String,
     val type: IrType,
