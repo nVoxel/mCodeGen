@@ -32,4 +32,3 @@ data class IrField(
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrElement
-
