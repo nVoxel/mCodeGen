@@ -141,6 +141,7 @@ data class IrBinaryExpression(
 data class IrUnaryExpression(
     val operator: IrUnaryOperator,
     val operand: IrExpression,
+    val isPrefix: Boolean,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -155,10 +156,8 @@ data class IrUnaryExpression(
         class Not : IrUnaryOperator // !bool
         class Plus : IrUnaryOperator // +num
         class Minus : IrUnaryOperator // -num
-        class PreIncrement : IrUnaryOperator // ++num
-        class PreDecrement : IrUnaryOperator // --num
-        class PostIncrement : IrUnaryOperator // num++
-        class PostDecrement : IrUnaryOperator // num--
+        class Increment : IrUnaryOperator // num++ or ++num
+        class Decrement : IrUnaryOperator // num-- or ++num
     }
 }
 

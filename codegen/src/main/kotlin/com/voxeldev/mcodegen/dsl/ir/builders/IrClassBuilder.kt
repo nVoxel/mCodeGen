@@ -7,6 +7,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
 import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.IrType
+import com.voxeldev.mcodegen.dsl.ir.IrTypeParameter
 import com.voxeldev.mcodegen.dsl.ir.IrVisibility
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
 
@@ -23,27 +24,37 @@ fun irClass(name: String): IrClassBuilder = IrClassBuilder(name)
 class IrClassBuilder internal constructor(private val name: String) : IrElementBuilder() {
     private var kind: IrClassKind = IrClassKind.CLASS
     private var visibility: IrVisibility = IrVisibilityPublic(IrStringRepresentation("kotlin", "public"))
+    private var typeParameters: MutableList<IrTypeParameter> = mutableListOf()
     private var superClasses: MutableList<IrClass> = mutableListOf()
     private var fields: MutableList<IrField> = mutableListOf()
     private var methods: MutableList<IrMethod> = mutableListOf()
     private var nestedClasses: MutableList<IrClass> = mutableListOf()
 
-    fun kind(kind: IrClassKind) = apply { this.kind = kind }
-    fun visibility(visibility: IrVisibility) = apply { this.visibility = visibility }
+    fun kind(kind: IrClassKind) {
+        this.kind = kind
+    }
 
-    fun addSuperClass(superClass: IrClass) = apply {
+    fun visibility(visibility: IrVisibility) {
+        this.visibility = visibility
+    }
+
+    fun addTypeParameter(typeParameter: IrTypeParameter) {
+        typeParameters.add(typeParameter)
+    }
+
+    fun addSuperClass(superClass: IrClass) {
         superClasses.add(superClass)
     }
 
-    fun addField(field: IrField) = apply {
+    fun addField(field: IrField) {
         fields.add(field)
     }
 
-    fun addMethod(method: IrMethod) = apply {
+    fun addMethod(method: IrMethod) {
         methods.add(method)
     }
 
-    fun addNestedClass(nestedClass: IrClass) = apply {
+    fun addNestedClass(nestedClass: IrClass) {
         nestedClasses.add(nestedClass)
     }
 
@@ -52,6 +63,7 @@ class IrClassBuilder internal constructor(private val name: String) : IrElementB
             name = name,
             kind = kind,
             visibility = visibility,
+            typeParameters = typeParameters,
             superClasses = superClasses,
             fields = fields,
             methods = methods,
@@ -78,12 +90,20 @@ class IrFieldBuilder internal constructor(
     private val type: IrType
 ) : IrElementBuilder() {
     private var visibility: IrVisibility = IrVisibilityPublic(IrStringRepresentation("kotlin", "public"))
-    private var isMutable: Boolean = false
+    private var isMutable: Boolean = true
     private var initializer: IrStatement? = null
 
-    fun visibility(visibility: IrVisibility) = apply { this.visibility = visibility }
-    fun mutable(isMutable: Boolean = true) = apply { this.isMutable = isMutable }
-    fun initializer(initializer: IrStatement?) = apply { this.initializer = initializer }
+    fun visibility(visibility: IrVisibility) {
+        this.visibility = visibility
+    }
+
+    fun mutable(isMutable: Boolean = true) {
+        this.isMutable = isMutable
+    }
+
+    fun initializer(initializer: IrStatement?) {
+        this.initializer = initializer
+    }
 
     fun build(): IrField {
         return IrField(
@@ -92,6 +112,28 @@ class IrFieldBuilder internal constructor(
             visibility = visibility,
             isMutable = isMutable,
             initializer = initializer,
+            location = location,
+            annotations = annotations,
+            languageProperties = languageProperties
+        )
+    }
+}
+
+fun irTypeParameter(name: String): IrTypeParameterBuilder = IrTypeParameterBuilder(name)
+
+class IrTypeParameterBuilder internal constructor(
+    private val name: String
+) : IrElementBuilder() {
+    private var extendsList: MutableList<IrType> = mutableListOf()
+
+    fun addExtendsType(extendsType: IrType) {
+        this.extendsList.add(extendsType)
+    }
+
+    fun build(): IrTypeParameter {
+        return IrTypeParameter(
+            name = name,
+            extendsList = extendsList,
             location = location,
             annotations = annotations,
             languageProperties = languageProperties

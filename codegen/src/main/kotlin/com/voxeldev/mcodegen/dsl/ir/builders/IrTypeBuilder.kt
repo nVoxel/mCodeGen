@@ -1,6 +1,14 @@
 package com.voxeldev.mcodegen.dsl.ir.builders
 
-import com.voxeldev.mcodegen.dsl.ir.*
+import com.voxeldev.mcodegen.dsl.ir.IrAnnotation
+import com.voxeldev.mcodegen.dsl.ir.IrArrayType
+import com.voxeldev.mcodegen.dsl.ir.IrClass
+import com.voxeldev.mcodegen.dsl.ir.IrFunctionType
+import com.voxeldev.mcodegen.dsl.ir.IrGeneric
+import com.voxeldev.mcodegen.dsl.ir.IrLocation
+import com.voxeldev.mcodegen.dsl.ir.IrType
+import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
+import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
 
 /**
  * Abstract builder class for creating [IrType] instances.
@@ -9,7 +17,9 @@ import com.voxeldev.mcodegen.dsl.ir.*
 abstract class IrTypeBuilder : IrElementBuilder() {
     protected var isNullable: Boolean = true
 
-    fun nullable(isNullable: Boolean) = apply { this.isNullable = isNullable }
+    fun nullable(isNullable: Boolean) {
+        this.isNullable = isNullable
+    }
 
     protected fun buildTypeProperties(): IrTypeProperties {
         return IrTypeProperties(
@@ -31,17 +41,17 @@ abstract class IrTypeBuilder : IrElementBuilder() {
 /**
  * Creates a new [IrTypeReferenceBuilder] instance with the given referenced class.
  */
-fun irTypeReference(referencedClass: IrClass): IrTypeReferenceBuilder =
-    IrTypeReferenceBuilder(referencedClass)
+fun irTypeReference(referencedClassName: String): IrTypeReferenceBuilder =
+    IrTypeReferenceBuilder(referencedClassName)
 
 /**
  * Builder class for creating [IrTypeReference] instances.
  */
-class IrTypeReferenceBuilder(private val referencedClass: IrClass) : IrTypeBuilder() {
+class IrTypeReferenceBuilder(private val referencedClassName: String) : IrTypeBuilder() {
     fun build(): IrTypeReference {
         val properties = buildTypeProperties()
         return IrTypeReference(
-            referencedClass = referencedClass,
+            referencedClassName = referencedClassName,
             isNullable = properties.isNullable,
             location = properties.location,
             annotations = properties.annotations,

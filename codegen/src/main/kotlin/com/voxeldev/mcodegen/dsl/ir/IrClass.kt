@@ -9,6 +9,7 @@ data class IrClass(
     val name: String,
     val kind: IrClassKind,
     val visibility: IrVisibility,
+    val typeParameters: List<IrTypeParameter>,
     val superClasses: List<IrClass>,
     val fields: List<IrField>,
     val methods: List<IrMethod>,
@@ -28,6 +29,14 @@ data class IrField(
     val visibility: IrVisibility,
     val isMutable: Boolean,
     val initializer: IrStatement?,
+    override val location: IrLocation? = null,
+    override val annotations: List<IrAnnotation> = emptyList(),
+    override val languageProperties: Map<String, Any> = emptyMap()
+) : IrElement
+
+data class IrTypeParameter(
+    val name: String,
+    val extendsList: List<IrType>,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()

@@ -15,7 +15,7 @@ fun irAnnotation(name: String): IrAnnotationBuilder = IrAnnotationBuilder(name)
 class IrAnnotationBuilder internal constructor(private val name: String) {
     private var languageProperties: MutableMap<String, Any> = mutableMapOf()
 
-    fun addProperty(key: String, value: Any) = apply {
+    fun addProperty(key: String, value: Any) {
         languageProperties[key] = value
     }
 

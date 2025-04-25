@@ -23,7 +23,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrUnaryExpression
 abstract class IrExpressionBuilder : IrElementBuilder() {
     protected var stringRepresentation: MutableList<IrStringRepresentation> = mutableListOf()
 
-    fun addStringRepresentation(representation: IrStringRepresentation) = apply {
+    fun addStringRepresentation(representation: IrStringRepresentation) {
         stringRepresentation.add(representation)
     }
 
@@ -98,7 +98,9 @@ fun irPropertyAccessExpression(propertyName: String): IrPropertyAccessExpression
 class IrPropertyAccessExpressionBuilder(private val propertyName: String) : IrExpressionBuilder() {
     private var receiver: IrExpression? = null
 
-    fun receiver(receiver: IrExpression?) = apply { this.receiver = receiver }
+    fun receiver(receiver: IrExpression?) {
+        this.receiver = receiver
+    }
 
     fun build(): IrPropertyAccessExpression {
         val properties = buildExpressionProperties()
@@ -126,8 +128,13 @@ class IrMethodCallExpressionBuilder(private val methodName: String) : IrExpressi
     private var receiver: IrExpression? = null
     private var arguments: MutableList<IrExpression> = mutableListOf()
 
-    fun receiver(receiver: IrExpression?) = apply { this.receiver = receiver }
-    fun addArgument(argument: IrExpression) = apply { arguments.add(argument) }
+    fun receiver(receiver: IrExpression?) {
+        this.receiver = receiver
+    }
+
+    fun addArgument(argument: IrExpression) {
+        arguments.add(argument)
+    }
 
     fun build(): IrMethodCallExpression {
         val properties = buildExpressionProperties()
@@ -155,7 +162,9 @@ fun irObjectCreationExpression(className: String): IrObjectCreationExpressionBui
 class IrObjectCreationExpressionBuilder(private val className: String) : IrExpressionBuilder() {
     private var constructorArgs: MutableList<IrExpression> = mutableListOf()
 
-    fun addConstructorArg(arg: IrExpression) = apply { constructorArgs.add(arg) }
+    fun addConstructorArg(arg: IrExpression) {
+        constructorArgs.add(arg)
+    }
 
     fun build(): IrObjectCreationExpression {
         val properties = buildExpressionProperties()
@@ -212,9 +221,11 @@ class IrBinaryExpressionBuilder(
 fun irUnaryExpression(
     operator: IrUnaryExpression.IrUnaryOperator,
     operand: IrExpression,
+    isPrefix: Boolean,
 ): IrUnaryExpressionBuilder = IrUnaryExpressionBuilder(
     operator = operator,
     operand = operand,
+    isPrefix = isPrefix,
 )
 
 /**
@@ -223,6 +234,7 @@ fun irUnaryExpression(
 class IrUnaryExpressionBuilder(
     private val operator: IrUnaryExpression.IrUnaryOperator,
     private val operand: IrExpression,
+    private val isPrefix: Boolean,
 ) : IrExpressionBuilder() {
 
     fun build(): IrUnaryExpression {
@@ -230,6 +242,7 @@ class IrUnaryExpressionBuilder(
         return IrUnaryExpression(
             operator = operator,
             operand = operand,
+            isPrefix = isPrefix,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,

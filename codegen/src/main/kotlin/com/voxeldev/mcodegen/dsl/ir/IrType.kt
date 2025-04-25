@@ -9,7 +9,7 @@ sealed interface IrType : IrElement {
 }
 
 data class IrTypeReference(
-    val referencedClass: IrClass,
+    val referencedClassName: String,
     override val isNullable: Boolean = true,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),

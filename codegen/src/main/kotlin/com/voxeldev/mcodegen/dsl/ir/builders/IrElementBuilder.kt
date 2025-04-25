@@ -13,13 +13,15 @@ abstract class IrElementBuilder {
     protected var annotations: MutableList<IrAnnotation> = mutableListOf()
     protected var languageProperties: MutableMap<String, Any> = mutableMapOf()
 
-    fun location(location: IrLocation?) = apply { this.location = location }
+    fun location(location: IrLocation?) {
+        this.location = location
+    }
 
-    fun addAnnotation(annotation: IrAnnotation) = apply {
+    fun addAnnotation(annotation: IrAnnotation) {
         annotations.add(annotation)
     }
 
-    fun addLanguageProperty(key: String, value: Any) = apply {
+    fun addLanguageProperty(key: String, value: Any) {
         languageProperties[key] = value
     }
 }

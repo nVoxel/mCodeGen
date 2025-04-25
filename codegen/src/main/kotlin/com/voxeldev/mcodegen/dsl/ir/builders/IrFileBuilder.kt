@@ -17,9 +17,17 @@ class IrFileBuilder(private val name: String) {
     private var declarations: MutableList<IrElement> = mutableListOf()
     private var languageProperties: MutableMap<String, Any> = mutableMapOf()
 
-    fun addImport(import: IrImport) = apply { imports.add(import) }
-    fun addDeclaration(declaration: IrElement) = apply { declarations.add(declaration) }
-    fun addLanguageProperty(key: String, value: Any) = apply { languageProperties[key] = value }
+    fun addImport(import: IrImport) {
+        imports.add(import)
+    }
+
+    fun addDeclaration(declaration: IrElement) {
+        declarations.add(declaration)
+    }
+
+    fun addLanguageProperty(key: String, value: Any) {
+        languageProperties[key] = value
+    }
 
     fun build(): IrFile {
         return IrFile(

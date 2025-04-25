@@ -1,6 +1,23 @@
 package com.voxeldev.mcodegen.dsl.ir.builders
 
-import com.voxeldev.mcodegen.dsl.ir.*
+import com.voxeldev.mcodegen.dsl.ir.IrAnnotation
+import com.voxeldev.mcodegen.dsl.ir.IrBlockStatement
+import com.voxeldev.mcodegen.dsl.ir.IrBreakStatement
+import com.voxeldev.mcodegen.dsl.ir.IrContinueStatement
+import com.voxeldev.mcodegen.dsl.ir.IrDoWhileStatement
+import com.voxeldev.mcodegen.dsl.ir.IrExpression
+import com.voxeldev.mcodegen.dsl.ir.IrExpressionStatement
+import com.voxeldev.mcodegen.dsl.ir.IrForStatement
+import com.voxeldev.mcodegen.dsl.ir.IrIfStatement
+import com.voxeldev.mcodegen.dsl.ir.IrLocation
+import com.voxeldev.mcodegen.dsl.ir.IrReturnStatement
+import com.voxeldev.mcodegen.dsl.ir.IrStatement
+import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
+import com.voxeldev.mcodegen.dsl.ir.IrSwitchStatement
+import com.voxeldev.mcodegen.dsl.ir.IrThrowStatement
+import com.voxeldev.mcodegen.dsl.ir.IrTryCatchStatement
+import com.voxeldev.mcodegen.dsl.ir.IrVariableDeclarationStatement
+import com.voxeldev.mcodegen.dsl.ir.IrWhileStatement
 
 /**
  * Abstract builder class for creating [IrStatement] instances.
@@ -9,7 +26,7 @@ import com.voxeldev.mcodegen.dsl.ir.*
 abstract class IrStatementBuilder : IrElementBuilder() {
     protected var stringRepresentation: MutableList<IrStringRepresentation> = mutableListOf()
 
-    fun addStringRepresentation(representation: IrStringRepresentation) = apply {
+    fun addStringRepresentation(representation: IrStringRepresentation) {
         stringRepresentation.add(representation)
     }
 
@@ -57,7 +74,7 @@ class IrExpressionStatementBuilder(private val expression: IrExpression) : IrSta
  */
 fun irVariableDeclarationStatement(
     name: String,
-    type: IrType,
+    type: String,
 ): IrVariableDeclarationStatementBuilder = IrVariableDeclarationStatementBuilder(
     name = name,
     type = type,
@@ -68,11 +85,13 @@ fun irVariableDeclarationStatement(
  */
 class IrVariableDeclarationStatementBuilder(
     private val name: String,
-    private val type: IrType,
+    private val type: String,
 ) : IrStatementBuilder() {
     private var initializer: IrExpression? = null
 
-    fun initializer(initializer: IrExpression?) = apply { this.initializer = initializer }
+    fun initializer(initializer: IrExpression?) {
+        this.initializer = initializer
+    }
 
     fun build(): IrVariableDeclarationStatement {
         val properties = buildStatementProperties()
@@ -99,7 +118,9 @@ fun irBlockStatement(): IrBlockStatementBuilder = IrBlockStatementBuilder()
 class IrBlockStatementBuilder : IrStatementBuilder() {
     private var statements: MutableList<IrStatement> = mutableListOf()
 
-    fun addStatement(statement: IrStatement) = apply { statements.add(statement) }
+    fun addStatement(statement: IrStatement) {
+        statements.add(statement)
+    }
 
     fun build(): IrBlockStatement {
         val properties = buildStatementProperties()
@@ -123,21 +144,23 @@ fun irIfStatement(condition: IrExpression): IrIfStatementBuilder =
  * Builder class for creating [IrIfStatement] instances.
  */
 class IrIfStatementBuilder(private val condition: IrExpression) : IrStatementBuilder() {
-    private var thenBlock: MutableList<IrStatement> = mutableListOf()
-    private var elseBlock: MutableList<IrStatement>? = null
+    private var thenStatement: IrStatement? = null
+    private var elseStatement: IrStatement? = null
 
-    fun addThenStatement(statement: IrStatement) = apply { thenBlock.add(statement) }
-    fun addElseStatement(statement: IrStatement) = apply {
-        if (elseBlock == null) elseBlock = mutableListOf()
-        elseBlock?.add(statement)
+    fun thenStatement(statement: IrStatement) {
+        thenStatement = statement
+    }
+
+    fun elseStatement(statement: IrStatement) {
+        elseStatement = statement
     }
 
     fun build(): IrIfStatement {
         val properties = buildStatementProperties()
         return IrIfStatement(
             condition = condition,
-            thenBlock = thenBlock,
-            elseBlock = elseBlock,
+            thenStatement = requireNotNull(thenStatement),
+            elseStatement = elseStatement,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,
@@ -157,13 +180,24 @@ fun irForStatement(): IrForStatementBuilder = IrForStatementBuilder()
 class IrForStatementBuilder : IrStatementBuilder() {
     private var initializer: IrStatement? = null
     private var condition: IrExpression? = null
-    private var update: IrExpression? = null
-    private var body: MutableList<IrStatement> = mutableListOf()
+    private var update: IrStatement? = null
+    private var body: IrStatement? = null
 
-    fun initializer(initializer: IrStatement?) = apply { this.initializer = initializer }
-    fun condition(condition: IrExpression?) = apply { this.condition = condition }
-    fun update(update: IrExpression?) = apply { this.update = update }
-    fun addStatement(statement: IrStatement) = apply { body.add(statement) }
+    fun initializer(initializer: IrStatement?) {
+        this.initializer = initializer
+    }
+
+    fun condition(condition: IrExpression?) {
+        this.condition = condition
+    }
+
+    fun update(update: IrStatement?) {
+        this.update = update
+    }
+
+    fun body(statement: IrStatement) {
+        this.body = statement
+    }
 
     fun build(): IrForStatement {
         val properties = buildStatementProperties()
@@ -171,7 +205,7 @@ class IrForStatementBuilder : IrStatementBuilder() {
             initializer = initializer,
             condition = condition,
             update = update,
-            body = body,
+            body = requireNotNull(body),
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,
@@ -190,15 +224,17 @@ fun irWhileStatement(condition: IrExpression): IrWhileStatementBuilder =
  * Builder class for creating [IrWhileStatement] instances.
  */
 class IrWhileStatementBuilder(private val condition: IrExpression) : IrStatementBuilder() {
-    private var body: MutableList<IrStatement> = mutableListOf()
+    private var body: IrStatement? = null
 
-    fun addStatement(statement: IrStatement) = apply { body.add(statement) }
+    fun body(statement: IrStatement) {
+        body = statement
+    }
 
     fun build(): IrWhileStatement {
         val properties = buildStatementProperties()
         return IrWhileStatement(
             condition = condition,
-            body = body,
+            body = requireNotNull(body),
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,
@@ -217,14 +253,16 @@ fun irDoWhileStatement(condition: IrExpression): IrDoWhileStatementBuilder =
  * Builder class for creating [IrDoWhileStatement] instances.
  */
 class IrDoWhileStatementBuilder(private val condition: IrExpression) : IrStatementBuilder() {
-    private var body: MutableList<IrStatement> = mutableListOf()
+    private var body: IrStatement? = null
 
-    fun addStatement(statement: IrStatement) = apply { body.add(statement) }
+    fun body(statement: IrStatement) {
+        body = statement
+    }
 
     fun build(): IrDoWhileStatement {
         val properties = buildStatementProperties()
         return IrDoWhileStatement(
-            body = body,
+            body = requireNotNull(body),
             condition = condition,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
@@ -245,12 +283,9 @@ fun irSwitchStatement(expression: IrExpression): IrSwitchStatementBuilder =
  */
 class IrSwitchStatementBuilder(private val expression: IrExpression) : IrStatementBuilder() {
     private var cases: MutableList<IrSwitchStatement.IrSwitchStatementCase> = mutableListOf()
-    private var defaultBody: MutableList<IrStatement>? = null
 
-    fun addCase(case: IrSwitchStatement.IrSwitchStatementCase) = apply { cases.add(case) }
-    fun addDefaultStatement(statement: IrStatement) = apply {
-        if (defaultBody == null) defaultBody = mutableListOf()
-        defaultBody?.add(statement)
+    fun addCase(case: IrSwitchStatement.IrSwitchStatementCase) {
+        cases.add(case)
     }
 
     fun build(): IrSwitchStatement {
@@ -258,7 +293,6 @@ class IrSwitchStatementBuilder(private val expression: IrExpression) : IrStateme
         return IrSwitchStatement(
             expression = expression,
             cases = cases,
-            defaultBody = defaultBody,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,
@@ -277,10 +311,15 @@ fun irSwitchStatementCase(): IrSwitchStatementCaseBuilder = IrSwitchStatementCas
  */
 class IrSwitchStatementCaseBuilder : IrStatementBuilder() {
     private var matchExpression: IrExpression? = null
-    private var body: MutableList<IrStatement> = mutableListOf()
+    private var body: IrStatement? = null
 
-    fun matchExpression(matchExpression: IrExpression?) = apply { this.matchExpression = matchExpression }
-    fun addStatement(statement: IrStatement) = apply { body.add(statement) }
+    fun matchExpression(matchExpression: IrExpression?) {
+        this.matchExpression = matchExpression
+    }
+
+    fun body(statement: IrStatement) {
+        body = statement
+    }
 
     fun build(): IrSwitchStatement.IrSwitchStatementCase {
         val properties = buildStatementProperties()
@@ -306,7 +345,9 @@ fun irReturnStatement(): IrReturnStatementBuilder = IrReturnStatementBuilder()
 class IrReturnStatementBuilder : IrStatementBuilder() {
     private var expression: IrExpression? = null
 
-    fun expression(expression: IrExpression?) = apply { this.expression = expression }
+    fun expression(expression: IrExpression?) {
+        this.expression = expression
+    }
 
     fun build(): IrReturnStatement {
         val properties = buildStatementProperties()
@@ -385,21 +426,24 @@ class IrThrowStatementBuilder(private val expression: IrExpression) : IrStatemen
 /**
  * Creates a new [IrTryCatchStatementBuilder] instance.
  */
-fun irTryCatchStatement(): IrTryCatchStatementBuilder = IrTryCatchStatementBuilder()
+fun irTryCatchStatement(tryBlock: IrStatement): IrTryCatchStatementBuilder =
+    IrTryCatchStatementBuilder(tryBlock)
 
 /**
  * Builder class for creating [IrTryCatchStatement] instances.
  */
-class IrTryCatchStatementBuilder : IrStatementBuilder() {
-    private var tryBlock: MutableList<IrStatement> = mutableListOf()
+class IrTryCatchStatementBuilder(
+    private val tryBlock: IrStatement,
+) : IrStatementBuilder() {
     private var catchClauses: MutableList<IrTryCatchStatement.IrTryCatchStatementClause> = mutableListOf()
-    private var finallyBlock: MutableList<IrStatement>? = null
+    private var finallyBlock: IrStatement? = null
 
-    fun addTryStatement(statement: IrStatement) = apply { tryBlock.add(statement) }
-    fun addCatchClause(clause: IrTryCatchStatement.IrTryCatchStatementClause) = apply { catchClauses.add(clause) }
-    fun addFinallyStatement(statement: IrStatement) = apply {
-        if (finallyBlock == null) finallyBlock = mutableListOf()
-        finallyBlock?.add(statement)
+    fun addCatchClause(clause: IrTryCatchStatement.IrTryCatchStatementClause) {
+        catchClauses.add(clause)
+    }
+
+    fun finallyBlock(statement: IrStatement) {
+        finallyBlock = statement
     }
 
     fun build(): IrTryCatchStatement {
@@ -427,10 +471,15 @@ fun irTryCatchStatementClause(exceptionType: String): IrTryCatchStatementClauseB
  */
 class IrTryCatchStatementClauseBuilder(private val exceptionType: String) : IrStatementBuilder() {
     private var exceptionName: String? = null
-    private var body: MutableList<IrStatement> = mutableListOf()
+    private var body: IrStatement? = null
 
-    fun exceptionName(exceptionName: String?) = apply { this.exceptionName = exceptionName }
-    fun addStatement(statement: IrStatement) = apply { body.add(statement) }
+    fun exceptionName(exceptionName: String?) {
+        this.exceptionName = exceptionName
+    }
+
+    fun body(statement: IrStatement) {
+        body = statement
+    }
 
     fun build(): IrTryCatchStatement.IrTryCatchStatementClause {
         val properties = buildStatementProperties()

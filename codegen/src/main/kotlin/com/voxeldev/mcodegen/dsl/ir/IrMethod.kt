@@ -14,6 +14,7 @@ data class IrMethod(
     val isAbstract: Boolean,
     val isStatic: Boolean,
     val isOverride: Boolean,
+    val isConstructor: Boolean,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()

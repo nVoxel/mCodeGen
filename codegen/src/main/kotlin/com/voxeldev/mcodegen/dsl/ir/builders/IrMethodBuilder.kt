@@ -33,13 +33,35 @@ class IrMethodBuilder(
     private var isAbstract: Boolean = false
     private var isStatic: Boolean = false
     private var isOverride: Boolean = false
+    private var isConstructor: Boolean = false
 
-    fun addParameter(parameter: IrParameter) = apply { parameters.add(parameter) }
-    fun body(body: IrMethodBody?) = apply { this.body = body }
-    fun visibility(visibility: IrVisibility) = apply { this.visibility = visibility }
-    fun isAbstract(isAbstract: Boolean) = apply { this.isAbstract = isAbstract }
-    fun isStatic(isStatic: Boolean) = apply { this.isStatic = isStatic }
-    fun isOverride(isOverride: Boolean) = apply { this.isOverride = isOverride }
+    fun addParameter(parameter: IrParameter) {
+        parameters.add(parameter)
+    }
+
+    fun body(body: IrMethodBody?) {
+        this.body = body
+    }
+
+    fun visibility(visibility: IrVisibility) {
+        this.visibility = visibility
+    }
+
+    fun isAbstract(isAbstract: Boolean) {
+        this.isAbstract = isAbstract
+    }
+
+    fun isStatic(isStatic: Boolean) {
+        this.isStatic = isStatic
+    }
+
+    fun isOverride(isOverride: Boolean) {
+        this.isOverride = isOverride
+    }
+
+    fun isConstructor(isConstructor: Boolean) {
+        this.isConstructor = isConstructor
+    }
 
     fun build(): IrMethod {
         return IrMethod(
@@ -51,6 +73,7 @@ class IrMethodBuilder(
             isAbstract = isAbstract,
             isStatic = isStatic,
             isOverride = isOverride,
+            isConstructor = isConstructor,
             location = location,
             annotations = annotations,
             languageProperties = languageProperties,
@@ -99,7 +122,9 @@ fun irMethodBody(): IrMethodBodyBuilder = IrMethodBodyBuilder()
 class IrMethodBodyBuilder : IrElementBuilder() {
     private var statements: MutableList<IrStatement> = mutableListOf()
 
-    fun addStatement(statement: IrStatement) = apply { statements.add(statement) }
+    fun addStatement(statement: IrStatement) {
+        statements.add(statement)
+    }
 
     fun build(): IrMethodBody {
         return IrMethodBody(

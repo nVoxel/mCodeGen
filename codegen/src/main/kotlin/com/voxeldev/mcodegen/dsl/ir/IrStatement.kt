@@ -31,7 +31,7 @@ data class IrExpressionStatement(
  */
 data class IrVariableDeclarationStatement(
     val name: String,
-    val type: IrType,
+    val type: String,
     val initializer: IrExpression?,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
@@ -66,8 +66,8 @@ data class IrBlockStatement(
  */
 data class IrIfStatement(
     val condition: IrExpression,
-    val thenBlock: List<IrStatement>,
-    val elseBlock: List<IrStatement>? = null,
+    val thenStatement: IrStatement,
+    val elseStatement: IrStatement? = null,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -85,8 +85,8 @@ data class IrIfStatement(
 data class IrForStatement(
     val initializer: IrStatement?, // Often a VariableDeclarationStatement
     val condition: IrExpression?,
-    val update: IrExpression?, // e.g. i++
-    val body: List<IrStatement>,
+    val update: IrStatement?, // e.g. i++
+    val body: IrStatement,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -103,7 +103,7 @@ data class IrForStatement(
  */
 data class IrWhileStatement(
     val condition: IrExpression,
-    val body: List<IrStatement>,
+    val body: IrStatement,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -119,7 +119,7 @@ data class IrWhileStatement(
  * Do/while loop, e.g. `do { ... } while (condition)`
  */
 data class IrDoWhileStatement(
-    val body: List<IrStatement>,
+    val body: IrStatement,
     val condition: IrExpression,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
@@ -140,7 +140,6 @@ data class IrDoWhileStatement(
 data class IrSwitchStatement(
     val expression: IrExpression,
     val cases: List<IrSwitchStatementCase>,
-    val defaultBody: List<IrStatement>?,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -156,7 +155,7 @@ data class IrSwitchStatement(
      */
     data class IrSwitchStatementCase(
         val matchExpression: IrExpression?,
-        val body: List<IrStatement>,
+        val body: IrStatement?,
         override val stringRepresentation: List<IrStringRepresentation>,
         override val location: IrLocation?,
         override val annotations: List<IrAnnotation>,
@@ -244,9 +243,9 @@ data class IrThrowStatement(
  * ```
  */
 data class IrTryCatchStatement(
-    val tryBlock: List<IrStatement>,
+    val tryBlock: IrStatement,
     val catchClauses: List<IrTryCatchStatementClause>,
-    val finallyBlock: List<IrStatement>?,
+    val finallyBlock: IrStatement?,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -263,7 +262,7 @@ data class IrTryCatchStatement(
     data class IrTryCatchStatementClause(
         val exceptionType: String,
         val exceptionName: String?,
-        val body: List<IrStatement>,
+        val body: IrStatement?,
         override val stringRepresentation: List<IrStringRepresentation>,
         override val location: IrLocation?,
         override val annotations: List<IrAnnotation>,
