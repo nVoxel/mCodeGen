@@ -7,8 +7,6 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irClass
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeParameter
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeReference
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.JavaModule.PSI_CLASS
-import com.voxeldev.mcodegen.dsl.language.java.JavaModule.visitedClasses
 import com.voxeldev.mcodegen.dsl.language.java.ir.packagePrivateVisibility
 import com.voxeldev.mcodegen.dsl.language.java.ir.privateVisibility
 import com.voxeldev.mcodegen.dsl.language.java.ir.protectedVisibility

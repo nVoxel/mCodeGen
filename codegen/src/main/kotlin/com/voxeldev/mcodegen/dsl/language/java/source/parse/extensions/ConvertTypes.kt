@@ -5,8 +5,6 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irArrayType
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeReference
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.JavaModule.PSI_CLASS
-import com.voxeldev.mcodegen.dsl.language.java.JavaModule.resolvedTypes
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiArrayType
 import org.jetbrains.kotlin.com.intellij.psi.PsiClassType
