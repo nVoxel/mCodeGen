@@ -1,5 +1,8 @@
 package com.voxeldev.mcodegen.scenarios.tdCommon
 
+import com.voxeldev.mcodegen.GlobalConstants
+import com.voxeldev.mcodegen.dsl.ir.IrFile
+import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.scenario.baseScenario
 import com.voxeldev.mcodegen.dsl.scenario.configuration.baseScenarioConfiguration
 import com.voxeldev.mcodegen.dsl.scenario.manager.baseScenarioManager
@@ -17,17 +20,17 @@ fun main() {
         name = "TdKtx scenario",
         configuration = tdKtxScenarioConfiguration,
     ) {
-        val sourceIR : IR = JavaModule.parse(sourcePath = "path/to/source/file.java")
+        val sourceIR : IrFile = JavaModule.parse(sourcePath = GlobalConstants.ANDROID_SOURCE_PATH)
         
-        KotlinModule.generate(
+        /*KotlinModule.generate(
             source = sourceIR,
-            mappers = listOf(TdKtxFunctionsMapper()),
+            mappers = listOf(tdKtxFunctionsMapper()),
         )
 
         KotlinModule.generate(
             source = sourceIR,
-            mappers = listOf(TdKtxUpdatesMapper()),
-        )
+            mappers = listOf(tdKtxUpdatesMapper()),
+        )*/
     }
 
     val configuration = scenarioManagerConfiguration {
@@ -35,18 +38,4 @@ fun main() {
     }
 
     scenarioManager.runConfiguration(configuration)
-}
-
-class TdKtxFunctionsMapper : GenerationMapper {
-
-    override fun map(source: IR): IR {
-        // Map classes to wrappers
-    }
-}
-
-class TdKtxUpdatesMapper : GenerationMapper {
-
-    override fun map(source: IR): IR {
-        // Map classes to wrappers
-    }
 }

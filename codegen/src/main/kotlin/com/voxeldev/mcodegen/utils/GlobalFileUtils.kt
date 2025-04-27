@@ -45,7 +45,7 @@ object GlobalFileUtils {
         }
     }
 
-    private val project by lazy {
+    val project by lazy {
         val configuration = CompilerConfiguration()
         configuration.apply {
             put(
@@ -58,8 +58,6 @@ object GlobalFileUtils {
             )
 
             put(CommonConfigurationKeys.MODULE_NAME, "rootModule")
-
-            //addJvmClasspathRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         }
 
         val env = KotlinCoreEnvironment.createForTests(
@@ -67,9 +65,6 @@ object GlobalFileUtils {
             configuration,
             EnvironmentConfigFiles.JVM_CONFIG_FILES
         )
-
-        //KotlinCoreEnvironment.registerKotlinLightClassSupport(env.project as MockProject)
-        //KotlinCoreEnvironment.registerProjectServices(env.project as MockProject)
 
         TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
             project = env.project,

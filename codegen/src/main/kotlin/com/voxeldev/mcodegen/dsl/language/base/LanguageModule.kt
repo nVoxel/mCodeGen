@@ -2,6 +2,8 @@ package com.voxeldev.mcodegen.dsl.language.base
 
 import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
+import com.voxeldev.mcodegen.dsl.source.edit.scenario.EditScenario
+import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapper
 
 interface LanguageModule {
 
@@ -9,8 +11,12 @@ interface LanguageModule {
     fun parse(sourcePath: String): IrFile
 
     context(ScenarioScope)
-    fun generateJava(source: IrFile, mappers: Any)
+    fun generate(
+        source: IrFile,
+        applyToBasePath: String = "",
+        mappers: List<GenerationMapper>,
+    )
 
     context(ScenarioScope)
-    fun editJava(sourcePath: String, mappers: Any)
+    fun edit(sourcePath: String, editScenario: EditScenario)
 }

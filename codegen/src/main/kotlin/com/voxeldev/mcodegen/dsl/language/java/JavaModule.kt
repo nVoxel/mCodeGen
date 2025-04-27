@@ -56,6 +56,8 @@ import com.voxeldev.mcodegen.dsl.language.java.ir.IrVisibilityPackagePrivate
 import com.voxeldev.mcodegen.dsl.language.java.ir.builders.irExpressionUnknown
 import com.voxeldev.mcodegen.dsl.language.java.ir.builders.irStatementUnknown
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
+import com.voxeldev.mcodegen.dsl.source.edit.scenario.EditScenario
+import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapper
 import com.voxeldev.mcodegen.utils.GlobalFileUtils
 import com.voxeldev.mcodegen.utils.GlobalFileUtils.asString
 import org.jetbrains.kotlin.com.intellij.psi.PsiArrayType
@@ -112,6 +114,8 @@ object JavaModule : LanguageModule {
 
         visitedClasses.clear()
         resolvedTypes.clear()
+
+        irFileBuilder.addLanguageProperty("package", psiFile.packageName)
 
         psiFile.importList?.importStatements?.forEach { importStatement ->
             val path = importStatement.qualifiedName ?: return@forEach
@@ -636,13 +640,17 @@ object JavaModule : LanguageModule {
     }
 
     context(ScenarioScope)
-    override fun generateJava(source: IrFile, mappers: Any) {
-        TODO("Not yet implemented")
+    override fun generate(
+        source: IrFile,
+        applyToBasePath: String,
+        mappers: List<GenerationMapper>,
+    ) {
+        TODO()
     }
 
     context(ScenarioScope)
-    override fun editJava(sourcePath: String, mappers: Any) {
-        TODO("Not yet implemented")
+    override fun edit(sourcePath: String, editScenario: EditScenario) {
+        TODO()
     }
 
     private fun publicVisibility(): IrVisibilityPublic = IrVisibilityPublic(

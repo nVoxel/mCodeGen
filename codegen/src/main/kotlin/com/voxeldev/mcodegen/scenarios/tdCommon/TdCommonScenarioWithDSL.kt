@@ -1,5 +1,8 @@
 package com.voxeldev.mcodegen.scenarios.tdCommon
 
+import com.voxeldev.mcodegen.GlobalConstants
+import com.voxeldev.mcodegen.dsl.ir.IrFile
+import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.scenario.baseScenario
 import com.voxeldev.mcodegen.dsl.scenario.configuration.baseScenarioConfiguration
 import com.voxeldev.mcodegen.dsl.scenario.manager.baseScenarioManager
@@ -18,58 +21,60 @@ fun main() {
         name = "TDLib scenario",
         configuration = tdLibScenarioConfguration,
     ) {
-        val androidSourceIR : IR = JavaModule.parse(sourcePath = "path/to/android/source/file.java")
-        val desktopSourceIR : IR = JavaModule.parse(sourcePath = "path/to/desktop/source/file.java")
+        val androidSourceIR : IrFile = JavaModule.parse(sourcePath = GlobalConstants.ANDROID_SOURCE_PATH)
+        val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = GlobalConstants.DESKTOP_SOURCE_PATH)
         // val iosSourceIR : IR = SwiftModule.parse(sourcePath = "path/to/ios/source/file.swift")
+        // val testExpressionsIR : IrFile = JavaModule.parse(sourcePath = "${GlobalPathUtils.currentPath}/../../Downloads/test_java_expressions.java")
+        // val testStatementsIR : IrFile = JavaModule.parse(sourcePath = "${GlobalPathUtils.currentPath}/../../Downloads/test_java_statements.java")
 
-        val commonClasses = unifySources(
+        /*val commonClasses = unifySources(
             strategy = UnifyStrategyByNameAndMethods(),
-            sources = listOf(androidSourceIR, desktopSourceIR, /*iosSourceIR*/),
+            sources = listOf(androidSourceIR, desktopSourceIR, *//*iosSourceIR*//*),
         )
 
         KotlinModule.generate(
             source = commonClasses,
-            mappers = listOf(KMPCommonInterfacesMapper()),
+            mappers = listOf(kmpCommonInterfacesMapper()),
         )
 
         KotlinModule.generate(
             source = commonClasses,
             applyToBasePath = "android"
-            mappers = listOf(KMPInstanceGetterImplsMapper()),
+            mappers = listOf(kmpInstanceGetterImplsMapper()),
         )
 
         KotlinModule.generate(
             source = commonClasses,
             applyToBasePath = "desktop",
-            mappers = listOf(KMPInstanceGetterImplsMapper()),
+            mappers = listOf(kmpInstanceGetterImplsMapper()),
         )
 
         KotlinModule.generate(
             source = commonClasses,
             applyToBasePath = "android",
-            mappers = listOf(KMPInstanceGettersKoinModulesMapper()),
+            mappers = listOf(kmpInstanceGettersKoinModulesMapper()),
         )
 
         KotlinModule.generate(
             source = commonClasses,
             applyToBasePath = "desktop",
-            mappers = listOf(KMPInstanceGettersKoinModulesMapper()),
+            mappers = listOf(kmpInstanceGettersKoinModulesMapper()),
         )
 
         JavaModule.edit(
             sourcePath = "path/to/android/source/file.java",
-            mappers = listOf(AppendInterfacesMapper()),
+            editScenario = appendJavaInterfacesEditScenario(),
         )
 
         JavaModule.edit(
             sourcePath = "path/to/desktop/source/file.java",
-            mappers = listOf(AppendJavaInterfacesMapper()),
+            editScenario = appendJavaInterfacesEditScenario(),
         )
 
-        // SwiftModule.edit(
-        //     sourcePath = "path/to/ios/source/file.swift",
-        //     mappers = listOf(AppendSwiftInterfacesMapper()),
-        // )
+        SwiftModule.edit(
+            sourcePath = "path/to/ios/source/file.swift",
+            editScenario = appendSwiftInterfacesEditScenario(),
+        )*/
     }
 
     val configuration = scenarioManagerConfiguration {
@@ -79,41 +84,9 @@ fun main() {
     scenarioManager.runConfiguration(configuration)
 }
 
+/*
 class UnifyStrategyByNameAndMethods : UnifySourcesStrategy {
     override fun unify(sources: List<SourceIR>): SourceIR {
         // Implement the logic to unify the sources
     }
-}
-
-class KMPCommonInterfacesMapper : GenerationMapper {
-
-    override fun map(source: IR): IR {
-        // Map unified classes to common interfaces
-    }
-}
-
-class KMPInstanceGetterImplsMapper : GenerationMapper {
-    override fun map(source: IR): IR {
-        // Map unified classes to their instance getters for specific platform (Android, Desktop)
-    }
-}
-
-class KMPInstanceGettersKoinModulesMapper : GenerationMapper {
-    override fun map(source: IR): IR {
-        // Map unified classes to Koin modules for each instance getter (Android, Desktop)
-    }
-}
-
-class AppendJavaInterfacesScenario : BaseEditScenario {
-
-    override fun getSteps(): List<EditStep> {
-        // Define how the source code should be edited using steps
-    }
-}
-
-class AppendSwiftInterfacesScenario : BaseEditScenario {
-
-    override fun getSteps(): List<EditStep> {
-        // Define how the source code should be edited using steps
-    }
-}
+}*/

@@ -2,7 +2,6 @@ package com.voxeldev.mcodegen.dsl.ir.builders
 
 import com.voxeldev.mcodegen.dsl.ir.IrAnnotation
 import com.voxeldev.mcodegen.dsl.ir.IrArrayType
-import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrFunctionType
 import com.voxeldev.mcodegen.dsl.ir.IrGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrLocation

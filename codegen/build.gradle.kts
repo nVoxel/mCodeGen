@@ -7,8 +7,10 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlin.compiler)
 
-    implementation(libs.jna)
+    implementation(libs.javapoet)
     implementation(libs.kotlinpoet)
+
+    implementation(libs.jna)
     implementation(libs.javaparser)
 }
 
