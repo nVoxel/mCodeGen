@@ -1,6 +1,5 @@
 package com.voxeldev.mcodegen.scenarios.tdCommon
 
-import com.voxeldev.mcodegen.GlobalConstants
 import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.scenario.baseScenario
@@ -13,16 +12,16 @@ fun main() {
     val scenarioManager = baseScenarioManager()
 
     val tdLibScenarioConfguration = baseScenarioConfiguration {
-        setSourcesDir("source-code-directory")
-        setOutputDir("produced-code-directory")
+        setSourcesDir("../../Downloads/")
+        setOutputDir("generated")
     }
 
     val tdLibScenario = baseScenario(
         name = "TDLib scenario",
         configuration = tdLibScenarioConfguration,
     ) {
-        val androidSourceIR : IrFile = JavaModule.parse(sourcePath = GlobalConstants.ANDROID_SOURCE_PATH)
-        val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = GlobalConstants.DESKTOP_SOURCE_PATH)
+        val androidSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiAndroid.java")
+        val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiDesktop.java")
         // val iosSourceIR : IR = SwiftModule.parse(sourcePath = "path/to/ios/source/file.swift")
         // val testExpressionsIR : IrFile = JavaModule.parse(sourcePath = "${GlobalPathUtils.currentPath}/../../Downloads/test_java_expressions.java")
         // val testStatementsIR : IrFile = JavaModule.parse(sourcePath = "${GlobalPathUtils.currentPath}/../../Downloads/test_java_statements.java")

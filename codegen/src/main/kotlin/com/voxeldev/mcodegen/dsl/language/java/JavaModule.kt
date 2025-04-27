@@ -106,8 +106,10 @@ object JavaModule : LanguageModule {
 
     context(ScenarioScope)
     override fun parse(sourcePath: String): IrFile {
-        val fileName = Path(sourcePath).fileName.toString()
-        val codeString = File(sourcePath).asString()
+        val pathToFile = Path(scenarioConfiguration.sourcesDir, sourcePath)
+        val fileName = pathToFile.fileName.toString()
+
+        val codeString = File(pathToFile.toString()).asString()
 
         val psiFile = GlobalFileUtils.parseJavaFile(codeString, fileName)
         val irFileBuilder = irFile(fileName)
