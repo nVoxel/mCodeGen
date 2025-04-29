@@ -5,29 +5,29 @@ package com.voxeldev.mcodegen.dsl.ir
  * This enum defines the different levels of visibility that can be applied to code elements.
  */
 open class IrVisibility(
-    open val stringRepresentation: IrStringRepresentation,
+    open val stringRepresentation: List<IrStringRepresentation>,
 )
 
 data class IrVisibilityPublic(
-    override val stringRepresentation: IrStringRepresentation,
+    override val stringRepresentation: List<IrStringRepresentation>,
 ) : IrVisibility(
     stringRepresentation = stringRepresentation,
 )
 
 data class IrVisibilityProtected(
-    override val stringRepresentation: IrStringRepresentation,
+    override val stringRepresentation: List<IrStringRepresentation>,
 ) : IrVisibility(
     stringRepresentation = stringRepresentation,
 )
 
 data class IrVisibilityInternal(
-    override val stringRepresentation: IrStringRepresentation,
+    override val stringRepresentation: List<IrStringRepresentation>,
 ) : IrVisibility(
     stringRepresentation = stringRepresentation,
 )
 
 data class IrVisibilityPrivate(
-    override val stringRepresentation: IrStringRepresentation,
+    override val stringRepresentation: List<IrStringRepresentation>,
 ) : IrVisibility(
     stringRepresentation = stringRepresentation,
 )

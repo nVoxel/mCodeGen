@@ -13,6 +13,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrObjectCreationExpression
 import com.voxeldev.mcodegen.dsl.ir.IrPropertyAccessExpression
 import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.IrTernaryExpression
+import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypeCheckExpression
 import com.voxeldev.mcodegen.dsl.ir.IrUnaryExpression
 
@@ -47,12 +48,12 @@ abstract class IrExpressionBuilder : IrElementBuilder() {
 /**
  * Creates a new [IrLiteralExpressionBuilder] instance with the given value.
  */
-fun irLiteralExpression(value: Any): IrLiteralExpressionBuilder = IrLiteralExpressionBuilder(value)
+fun irLiteralExpression(value: String): IrLiteralExpressionBuilder = IrLiteralExpressionBuilder(value)
 
 /**
  * Builder class for creating [IrLiteralExpression] instances.
  */
-class IrLiteralExpressionBuilder(private val value: Any) : IrExpressionBuilder() {
+class IrLiteralExpressionBuilder(private val value: String) : IrExpressionBuilder() {
     fun build(): IrLiteralExpression {
         val properties = buildExpressionProperties()
         return IrLiteralExpression(
@@ -68,12 +69,12 @@ class IrLiteralExpressionBuilder(private val value: Any) : IrExpressionBuilder()
 /**
  * Creates a new [IrIdentifierExpressionBuilder] instance with the given name.
  */
-fun irIdentifierExpression(name: Any): IrIdentifierExpressionBuilder = IrIdentifierExpressionBuilder(name)
+fun irIdentifierExpression(name: String): IrIdentifierExpressionBuilder = IrIdentifierExpressionBuilder(name)
 
 /**
  * Builder class for creating [IrIdentifierExpression] instances.
  */
-class IrIdentifierExpressionBuilder(private val name: Any) : IrExpressionBuilder() {
+class IrIdentifierExpressionBuilder(private val name: String) : IrExpressionBuilder() {
     fun build(): IrIdentifierExpression {
         val properties = buildExpressionProperties()
         return IrIdentifierExpression(
@@ -328,7 +329,7 @@ class IrTernaryExpressionBuilder(
  */
 fun irCastExpression(
     expression: IrExpression,
-    targetType: String,
+    targetType: IrType,
 ): IrCastExpressionBuilder = IrCastExpressionBuilder(
     expression = expression,
     targetType = targetType,
@@ -339,7 +340,7 @@ fun irCastExpression(
  */
 class IrCastExpressionBuilder(
     private val expression: IrExpression,
-    private val targetType: String,
+    private val targetType: IrType,
 ) : IrExpressionBuilder() {
 
     fun build(): IrCastExpression {
@@ -360,7 +361,7 @@ class IrCastExpressionBuilder(
  */
 fun irTypeCheckExpression(
     expression: IrExpression,
-    checkType: String,
+    checkType: IrType,
 ): IrTypeCheckExpressionBuilder = IrTypeCheckExpressionBuilder(
     expression = expression,
     checkType = checkType,
@@ -371,7 +372,7 @@ fun irTypeCheckExpression(
  */
 class IrTypeCheckExpressionBuilder(
     private val expression: IrExpression,
-    private val checkType: String,
+    private val checkType: IrType,
 ) : IrExpressionBuilder() {
 
     fun build(): IrTypeCheckExpression {

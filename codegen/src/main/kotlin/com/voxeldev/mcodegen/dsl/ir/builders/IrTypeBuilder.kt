@@ -47,10 +47,18 @@ fun irTypeReference(referencedClassName: String): IrTypeReferenceBuilder =
  * Builder class for creating [IrTypeReference] instances.
  */
 class IrTypeReferenceBuilder(private val referencedClassName: String) : IrTypeBuilder() {
+
+    private val typeParameters: MutableList<IrType> = mutableListOf()
+
+    fun addTypeParameter(type: IrType) {
+        typeParameters.add(type)
+    }
+
     fun build(): IrTypeReference {
         val properties = buildTypeProperties()
         return IrTypeReference(
             referencedClassName = referencedClassName,
+            typeParameters = typeParameters,
             isNullable = properties.isNullable,
             location = properties.location,
             annotations = properties.annotations,
@@ -62,17 +70,17 @@ class IrTypeReferenceBuilder(private val referencedClassName: String) : IrTypeBu
 /**
  * Creates a new [IrTypePrimitiveBuilder] instance with the given name.
  */
-fun irTypePrimitive(name: String): IrTypePrimitiveBuilder =
-    IrTypePrimitiveBuilder(name)
+fun irTypePrimitive(primitiveType: IrTypePrimitive.PrimitiveType): IrTypePrimitiveBuilder =
+    IrTypePrimitiveBuilder(primitiveType)
 
 /**
  * Builder class for creating [IrTypePrimitive] instances.
  */
-class IrTypePrimitiveBuilder(private val name: String) : IrTypeBuilder() {
+class IrTypePrimitiveBuilder(private val primitiveType: IrTypePrimitive.PrimitiveType) : IrTypeBuilder() {
     fun build(): IrTypePrimitive {
         val properties = buildTypeProperties()
         return IrTypePrimitive(
-            name = name,
+            primitiveType = primitiveType,
             isNullable = properties.isNullable,
             location = properties.location,
             annotations = properties.annotations,

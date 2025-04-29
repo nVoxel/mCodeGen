@@ -46,7 +46,7 @@ private fun convertField(psiClass: PsiClass, psiField: PsiField): IrField? {
         )
     }
 
-    irFieldBuilder.mutable(isMutable = psiField.hasModifierProperty(PsiModifier.FINAL))
+    irFieldBuilder.mutable(isMutable = !psiField.hasModifierProperty(PsiModifier.FINAL))
 
     if (psiField.hasInitializer()) {
         irFieldBuilder.initializer(

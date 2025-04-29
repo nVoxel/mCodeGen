@@ -16,6 +16,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.IrSwitchStatement
 import com.voxeldev.mcodegen.dsl.ir.IrThrowStatement
 import com.voxeldev.mcodegen.dsl.ir.IrTryCatchStatement
+import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrVariableDeclarationStatement
 import com.voxeldev.mcodegen.dsl.ir.IrWhileStatement
 
@@ -74,7 +75,7 @@ class IrExpressionStatementBuilder(private val expression: IrExpression) : IrSta
  */
 fun irVariableDeclarationStatement(
     name: String,
-    type: String,
+    type: IrType,
 ): IrVariableDeclarationStatementBuilder = IrVariableDeclarationStatementBuilder(
     name = name,
     type = type,
@@ -85,9 +86,14 @@ fun irVariableDeclarationStatement(
  */
 class IrVariableDeclarationStatementBuilder(
     private val name: String,
-    private val type: String,
+    private val type: IrType,
 ) : IrStatementBuilder() {
+    private var additionalNames: MutableList<String> = mutableListOf()
     private var initializer: IrExpression? = null
+
+    fun addName(additionalName: String) {
+        additionalNames.add(additionalName)
+    }
 
     fun initializer(initializer: IrExpression?) {
         this.initializer = initializer
@@ -98,6 +104,7 @@ class IrVariableDeclarationStatementBuilder(
         return IrVariableDeclarationStatement(
             name = name,
             type = type,
+            additionalNames = additionalNames,
             initializer = initializer,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
@@ -463,13 +470,13 @@ class IrTryCatchStatementBuilder(
 /**
  * Creates a new [IrTryCatchStatementClauseBuilder] instance with the given exception type.
  */
-fun irTryCatchStatementClause(exceptionType: String): IrTryCatchStatementClauseBuilder =
+fun irTryCatchStatementClause(exceptionType: IrType): IrTryCatchStatementClauseBuilder =
     IrTryCatchStatementClauseBuilder(exceptionType)
 
 /**
  * Builder class for creating [IrTryCatchStatement.IrTryCatchStatementClause] instances.
  */
-class IrTryCatchStatementClauseBuilder(private val exceptionType: String) : IrStatementBuilder() {
+class IrTryCatchStatementClauseBuilder(private val exceptionType: IrType) : IrStatementBuilder() {
     private var exceptionName: String? = null
     private var body: IrStatement? = null
 

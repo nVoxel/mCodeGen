@@ -31,7 +31,8 @@ data class IrExpressionStatement(
  */
 data class IrVariableDeclarationStatement(
     val name: String,
-    val type: String,
+    val type: IrType,
+    val additionalNames: List<String>,
     val initializer: IrExpression?,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
@@ -260,7 +261,7 @@ data class IrTryCatchStatement(
      * Represents a single catch clause (exception type + name + body).
      */
     data class IrTryCatchStatementClause(
-        val exceptionType: String,
+        val exceptionType: IrType,
         val exceptionName: String?,
         val body: IrStatement?,
         override val stringRepresentation: List<IrStringRepresentation>,

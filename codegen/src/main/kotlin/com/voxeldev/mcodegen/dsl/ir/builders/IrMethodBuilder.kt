@@ -4,10 +4,9 @@ import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.IrMethodBody
 import com.voxeldev.mcodegen.dsl.ir.IrParameter
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
-import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.IrType
+import com.voxeldev.mcodegen.dsl.ir.IrTypeParameter
 import com.voxeldev.mcodegen.dsl.ir.IrVisibility
-import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
 
 /**
  * Creates a new [IrMethodBuilder] instance with the given method name and return type.
@@ -28,8 +27,9 @@ class IrMethodBuilder(
     private val returnType: IrType,
 ) : IrElementBuilder() {
     private var parameters: MutableList<IrParameter> = mutableListOf()
+    private var typeParameters: MutableList<IrTypeParameter> = mutableListOf()
     private var body: IrMethodBody? = null
-    private var visibility: IrVisibility = IrVisibilityPublic(IrStringRepresentation("kotlin", "public"))
+    private var visibility: IrVisibility? = null
     private var isAbstract: Boolean = false
     private var isStatic: Boolean = false
     private var isOverride: Boolean = false
@@ -37,6 +37,10 @@ class IrMethodBuilder(
 
     fun addParameter(parameter: IrParameter) {
         parameters.add(parameter)
+    }
+
+    fun addTypeParameter(typeParameter: IrTypeParameter) {
+        typeParameters.add(typeParameter)
     }
 
     fun body(body: IrMethodBody?) {
@@ -68,8 +72,9 @@ class IrMethodBuilder(
             name = name,
             returnType = returnType,
             parameters = parameters,
+            typeParameters = typeParameters,
             body = body,
-            visibility = visibility,
+            visibility = requireNotNull(visibility),
             isAbstract = isAbstract,
             isStatic = isStatic,
             isOverride = isOverride,

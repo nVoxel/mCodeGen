@@ -1,0 +1,151 @@
+package com.voxeldev.mcodegen.dsl.language.java.source.generate.extensions
+
+import com.squareup.javapoet.ClassName
+import com.squareup.javapoet.CodeBlock
+import com.voxeldev.mcodegen.dsl.ir.IrAssignmentExpression
+import com.voxeldev.mcodegen.dsl.ir.IrBinaryExpression
+import com.voxeldev.mcodegen.dsl.ir.IrCastExpression
+import com.voxeldev.mcodegen.dsl.ir.IrExpression
+import com.voxeldev.mcodegen.dsl.ir.IrIdentifierExpression
+import com.voxeldev.mcodegen.dsl.ir.IrLiteralExpression
+import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
+import com.voxeldev.mcodegen.dsl.ir.IrObjectCreationExpression
+import com.voxeldev.mcodegen.dsl.ir.IrTernaryExpression
+import com.voxeldev.mcodegen.dsl.ir.IrTypeCheckExpression
+import com.voxeldev.mcodegen.dsl.ir.IrUnaryExpression
+import com.voxeldev.mcodegen.dsl.language.java.JavaModule
+import com.voxeldev.mcodegen.dsl.language.java.ir.IrExpressionUnknown
+import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
+
+context(JavaModule, ScenarioScope)
+internal fun convertExpression(irExpression: IrExpression): CodeBlock {
+    val poetCodeBlock = CodeBlock.builder()
+
+    when (irExpression) {
+        is IrLiteralExpression -> {
+            poetCodeBlock.add("\$L", irExpression.value)
+        }
+
+        is IrIdentifierExpression -> {
+            poetCodeBlock.add("\$N", irExpression.name)
+        }
+
+        is IrMethodCallExpression -> {
+            poetCodeBlock.apply {
+                irExpression.receiver?.let { receiver ->
+                    add("\$L.", convertExpression(receiver))
+                }
+
+                add("\$N(", irExpression.methodName)
+
+                add(
+                    CodeBlock.join(
+                        irExpression.arguments.map { argument -> convertExpression(argument) },
+                        ", "
+                    )
+                )
+
+                add(")")
+            }
+        }
+
+        is IrObjectCreationExpression -> {
+            val className = ClassName.bestGuess(irExpression.className)
+
+            poetCodeBlock.apply {
+                add("new \$T(", className)
+                add(
+                    CodeBlock.join(
+                        irExpression.constructorArgs.map { argument -> convertExpression(argument) },
+                        ", "
+                    )
+                )
+                add(")")
+            }
+        }
+
+        is IrBinaryExpression -> {
+            poetCodeBlock.apply {
+                add(
+                    "\$L \$L \$L",
+                    convertExpression(irExpression.left),
+                    convertBinaryOperator(irExpression.operator),
+                    convertExpression(irExpression.right),
+                )
+            }
+        }
+
+        is IrUnaryExpression -> {
+            poetCodeBlock.apply {
+                if (irExpression.isPrefix) {
+                    add(
+                        "\$L\$L",
+                        convertUnaryOperator(irExpression.operator),
+                        convertExpression(irExpression.operand),
+                    )
+                } else {
+                    add(
+                        "\$L\$L",
+                        convertExpression(irExpression.operand),
+                        convertUnaryOperator(irExpression.operator),
+                    )
+                }
+            }
+        }
+
+        is IrAssignmentExpression -> {
+            poetCodeBlock.apply {
+                add(
+                    "\$L \$L \$L",
+                    convertExpression(irExpression.target),
+                    convertAssignmentOperator(irExpression.operator),
+                    convertExpression(irExpression.value),
+                )
+            }
+        }
+
+        is IrTernaryExpression -> {
+            poetCodeBlock.apply {
+                add(
+                    "\$L ? \$L : \$L",
+                    convertExpression(irExpression.condition),
+                    convertExpression(irExpression.ifTrue),
+                    convertExpression(irExpression.ifFalse),
+                )
+            }
+        }
+
+        is IrCastExpression -> {
+            poetCodeBlock.apply {
+                add(
+                    "(\$T) \$L",
+                    convertType(irExpression.targetType),
+                    convertExpression(irExpression.expression),
+                )
+            }
+        }
+
+        is IrTypeCheckExpression -> {
+            poetCodeBlock.apply {
+                add(
+                    "\$L instanceof \$T",
+                    convertExpression(irExpression.expression),
+                    convertType(irExpression.checkType),
+                )
+            }
+        }
+
+        else -> {
+            if (irExpression is IrExpressionUnknown) {
+                val representation = irExpression.stringRepresentation.firstOrNull { it.language == "java" }
+                representation?.let {
+                    return poetCodeBlock.add(representation.representation).build()
+                }
+            }
+
+            poetCodeBlock.add("Unsupported") // TODO: Remove debug marker
+        }
+    }
+
+    return poetCodeBlock.build()
+}

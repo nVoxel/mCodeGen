@@ -14,7 +14,7 @@ open class IrExpression(
  * Represents an integer, float, string, boolean, char, etc.
  */
 data class IrLiteralExpression(
-    val value: Any,
+    val value: String,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -31,7 +31,7 @@ data class IrLiteralExpression(
  * e.g., `myVariable` or `System` or `MyClass`
  */
 data class IrIdentifierExpression(
-    val name: Any,
+    val name: String,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -211,7 +211,7 @@ data class IrTernaryExpression(
  */
 data class IrCastExpression(
     val expression: IrExpression,
-    val targetType: String,
+    val targetType: IrType,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -228,7 +228,7 @@ data class IrCastExpression(
  */
 data class IrTypeCheckExpression(
     val expression: IrExpression,
-    val checkType: String,
+    val checkType: IrType,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,

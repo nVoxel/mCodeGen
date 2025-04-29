@@ -22,9 +22,20 @@ fun main() {
     ) {
         val androidSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiAndroid.java")
         val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiDesktop.java")
+
+        // for test
+        val testStatementsIR : IrFile = JavaModule.parse(sourcePath = "test_java_statements.java")
+        JavaModule.generate(testStatementsIR, "test", listOf())
+
+        // for test
+        val testExpressionsIR : IrFile = JavaModule.parse(sourcePath = "test_java_expressions.java")
+        JavaModule.generate(testExpressionsIR, "test", listOf())
+
+        // for test
+        val testGenericsIR : IrFile = JavaModule.parse(sourcePath = "test_java_generic.java")
+        JavaModule.generate(testGenericsIR, "test", listOf())
+
         // val iosSourceIR : IR = SwiftModule.parse(sourcePath = "path/to/ios/source/file.swift")
-        // val testExpressionsIR : IrFile = JavaModule.parse(sourcePath = "${GlobalPathUtils.currentPath}/../../Downloads/test_java_expressions.java")
-        // val testStatementsIR : IrFile = JavaModule.parse(sourcePath = "${GlobalPathUtils.currentPath}/../../Downloads/test_java_statements.java")
 
         /*val commonClasses = unifySources(
             strategy = UnifyStrategyByNameAndMethods(),

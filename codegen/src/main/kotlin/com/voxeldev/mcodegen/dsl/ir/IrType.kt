@@ -10,6 +10,7 @@ sealed interface IrType : IrElement {
 
 data class IrTypeReference(
     val referencedClassName: String,
+    val typeParameters: List<IrType>,
     override val isNullable: Boolean = true,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
@@ -17,12 +18,24 @@ data class IrTypeReference(
 ) : IrType
 
 data class IrTypePrimitive(
-    val name: String,
+    val primitiveType: PrimitiveType,
     override val isNullable: Boolean = true,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()
-) : IrType
+) : IrType {
+    interface PrimitiveType {
+        class Void : PrimitiveType
+        class Boolean : PrimitiveType
+        class Byte : PrimitiveType
+        class Short : PrimitiveType
+        class Int : PrimitiveType
+        class Long : PrimitiveType
+        class Char : PrimitiveType
+        class Float : PrimitiveType
+        class Double : PrimitiveType
+    }
+}
 
 /**
  * Represents a function type in the IR (Intermediate Representation) system.

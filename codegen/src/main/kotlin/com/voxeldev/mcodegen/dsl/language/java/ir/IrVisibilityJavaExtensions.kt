@@ -9,17 +9,21 @@ import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 
 context(JavaModule)
 internal fun publicVisibility(): IrVisibilityPublic = IrVisibilityPublic(
-    IrStringRepresentation(
-        "java",
-        "public"
+    listOf(
+        IrStringRepresentation(
+            "java",
+            "public"
+        )
     )
 )
 
 context(JavaModule)
 internal fun protectedVisibility(): IrVisibilityProtected = IrVisibilityProtected(
-    IrStringRepresentation(
-        "java",
-        "protected"
+    listOf(
+        IrStringRepresentation(
+            "java",
+            "protected"
+        )
     )
 )
 
@@ -28,16 +32,20 @@ internal fun packagePrivateVisibility(): IrVisibilityPackagePrivate = IrVisibili
 
 context(JavaModule)
 internal fun privateVisibility(): IrVisibilityPrivate = IrVisibilityPrivate(
-    IrStringRepresentation(
-        "java",
-        "private"
+    listOf(
+        IrStringRepresentation(
+            "java",
+            "private"
+        )
     )
 )
 
 data class IrVisibilityPackagePrivate(
-    override val stringRepresentation: IrStringRepresentation = IrStringRepresentation(
-        language = "java",
-        representation = "package-private",
+    override val stringRepresentation: List<IrStringRepresentation> = listOf(
+        IrStringRepresentation(
+            language = "java",
+            representation = "package-private",
+        )
     )
 ) : IrVisibility(
     stringRepresentation = stringRepresentation,

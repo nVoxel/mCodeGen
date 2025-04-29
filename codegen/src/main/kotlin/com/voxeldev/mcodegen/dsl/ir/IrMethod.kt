@@ -9,6 +9,7 @@ data class IrMethod(
     val name: String,
     val returnType: IrType,
     val parameters: List<IrParameter>,
+    val typeParameters: List<IrTypeParameter>,
     val body: IrMethodBody?,
     val visibility: IrVisibility,
     val isAbstract: Boolean,

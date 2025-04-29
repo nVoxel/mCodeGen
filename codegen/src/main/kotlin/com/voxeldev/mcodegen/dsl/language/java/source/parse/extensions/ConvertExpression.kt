@@ -108,16 +108,14 @@ internal fun convertExpression(psiExpression: PsiExpression?): IrExpression {
         is PsiTypeCastExpression -> {
             irCastExpression(
                 expression = convertExpression(psiExpression.operand),
-                targetType = psiExpression.castType?.type?.canonicalText ?: psiExpression.castType?.text
-                ?: "Ir:UnnamedType"
+                targetType = convertType(psiExpression.castType?.type),
             ).build()
         }
 
         is PsiInstanceOfExpression -> {
             irTypeCheckExpression(
                 expression = convertExpression(psiExpression.operand),
-                checkType = psiExpression.checkType?.type?.canonicalText ?: psiExpression.checkType?.text
-                ?: "Ir:UnnamedType"
+                checkType = convertType(psiExpression.checkType?.type)
             ).build()
         }
 

@@ -45,21 +45,24 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
         }
 
         is PsiDeclarationStatement -> {
-            irBlockStatement().apply {
-                psiStatement.declaredElements
-                    .mapNotNull { it as? PsiVariable }
-                    .forEach { variable ->
-                        addStatement(
-                            statement = irVariableDeclarationStatement(
-                                name = variable.name ?: "Ir:UnnamedVariable",
-                                type = variable.type.canonicalText,
-                            ).apply {
-                                variable.initializer?.let { variableInitializer ->
-                                    initializer(initializer = convertExpression(variableInitializer))
-                                }
-                            }.build()
-                        )
-                    }
+            val declaredVariables = psiStatement.declaredElements
+                .mapNotNull { it as? PsiVariable }
+
+            if (declaredVariables.isEmpty()) {
+                throw IllegalArgumentException("Got variable declaration statement without variables")
+            }
+
+            irVariableDeclarationStatement(
+                name = declaredVariables[0].name ?: "Ir:UnnamedVariable",
+                type = convertType(declaredVariables[0].type)
+            ).apply {
+                declaredVariables.drop(1).forEach { variable ->
+                    addName(variable.name ?: "Ir:UnnamedVariable")
+                }
+
+                declaredVariables[0].initializer?.let { variableInitializer ->
+                    initializer(initializer = convertExpression(variableInitializer))
+                }
             }.build()
         }
 
@@ -134,7 +137,7 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
                     cases.forEach { case ->
                         val switchLabelStatement = case[0] as? PsiSwitchLabelStatement ?: return@forEach
                         val matchExpression =
-                            switchLabelStatement.caseValues?.expressions?.getOrNull(0) ?: return@forEach
+                            switchLabelStatement.caseValues?.expressions?.getOrNull(0)
                         addCase(
                             case = irSwitchStatementCase().apply {
                                 if (!switchLabelStatement.isDefaultCase) {
@@ -188,7 +191,7 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
                 psiStatement.catchSections.forEach { catchSection ->
                     addCatchClause(
                         clause = irTryCatchStatementClause(
-                            exceptionType = catchSection.catchType?.canonicalText ?: "Ir:UnnamedType"
+                            exceptionType = convertType(catchSection.catchType)
                         ).apply {
                             catchSection.parameter?.name?.let { parameterName ->
                                 exceptionName(parameterName)

@@ -5,11 +5,9 @@ import com.voxeldev.mcodegen.dsl.ir.IrClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrField
 import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
-import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypeParameter
 import com.voxeldev.mcodegen.dsl.ir.IrVisibility
-import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
 
 /**
  * Creates a new [IrClassBuilder] instance with the given name.
@@ -23,7 +21,7 @@ fun irClass(name: String): IrClassBuilder = IrClassBuilder(name)
  */
 class IrClassBuilder internal constructor(private val name: String) : IrElementBuilder() {
     private var kind: IrClassKind = IrClassKind.CLASS
-    private var visibility: IrVisibility = IrVisibilityPublic(IrStringRepresentation("kotlin", "public"))
+    private var visibility: IrVisibility? = null
     private var typeParameters: MutableList<IrTypeParameter> = mutableListOf()
     private var superClasses: MutableList<IrClass> = mutableListOf()
     private var fields: MutableList<IrField> = mutableListOf()
@@ -62,7 +60,7 @@ class IrClassBuilder internal constructor(private val name: String) : IrElementB
         return IrClass(
             name = name,
             kind = kind,
-            visibility = visibility,
+            visibility = requireNotNull(visibility),
             typeParameters = typeParameters,
             superClasses = superClasses,
             fields = fields,
@@ -89,7 +87,7 @@ class IrFieldBuilder internal constructor(
     private val name: String,
     private val type: IrType
 ) : IrElementBuilder() {
-    private var visibility: IrVisibility = IrVisibilityPublic(IrStringRepresentation("kotlin", "public"))
+    private var visibility: IrVisibility? = null
     private var isMutable: Boolean = true
     private var initializer: IrStatement? = null
 
@@ -109,7 +107,7 @@ class IrFieldBuilder internal constructor(
         return IrField(
             name = name,
             type = type,
-            visibility = visibility,
+            visibility = requireNotNull(visibility),
             isMutable = isMutable,
             initializer = initializer,
             location = location,

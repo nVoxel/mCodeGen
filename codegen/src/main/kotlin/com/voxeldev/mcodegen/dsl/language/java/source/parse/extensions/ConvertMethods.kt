@@ -53,7 +53,7 @@ internal fun convertMethod(psiClass: PsiClass, psiMethod: PsiMethod): IrMethod {
 
     psiMethod.annotations.forEach { annotation ->
         irMethodBuilder.addAnnotation(
-            irAnnotation(annotation.text).build()
+            irAnnotation(annotation.qualifiedName ?: annotation.text).build()
         )
     }
 
@@ -64,6 +64,10 @@ internal fun convertMethod(psiClass: PsiClass, psiMethod: PsiMethod): IrMethod {
                 type = convertType(parameter.type),
             ).build()
         )
+    }
+
+    psiMethod.typeParameters.forEach { typeParameter ->
+        irMethodBuilder.addTypeParameter(convertTypeParameter(typeParameter))
     }
 
     // Convert method body if present

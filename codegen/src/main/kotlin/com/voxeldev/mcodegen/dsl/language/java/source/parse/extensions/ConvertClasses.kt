@@ -4,8 +4,6 @@ import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind
 import com.voxeldev.mcodegen.dsl.ir.builders.IrFileBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irClass
-import com.voxeldev.mcodegen.dsl.ir.builders.irTypeParameter
-import com.voxeldev.mcodegen.dsl.ir.builders.irTypeReference
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.language.java.ir.packagePrivateVisibility
 import com.voxeldev.mcodegen.dsl.language.java.ir.privateVisibility
@@ -25,12 +23,10 @@ internal fun convertClasses(psiClasses: Array<PsiClass>, irFileBuilder: IrFileBu
 context(JavaModule, ScenarioScope)
 private fun convertClass(psiClass: PsiClass): IrClass {
     val className = psiClass.qualifiedName ?: "Ir:UnnamedClass"
-    if (visitedClasses.contains(className)) {
-        return visitedClasses[className]!!.build()
-    }
 
     val irClassBuilder = irClass(className)
-    visitedClasses[className] = irClassBuilder
+
+    irClassBuilder.addLanguageProperty("simpleName", psiClass.name?: "Ir:UnnamedClass")
 
     irClassBuilder.kind(
         when {
@@ -70,17 +66,7 @@ private fun convertClass(psiClass: PsiClass): IrClass {
     }
 
     psiClass.typeParameters.forEach { typeParameter ->
-        val irTypeParameter = irTypeParameter(typeParameter.name ?: "Ir:UnnamedTypeParameter")
-        typeParameter.extendsListTypes.forEach { extendsType ->
-            val referencedClass = extendsType.resolve() ?: return@forEach
-            val referencedClassName = referencedClass.qualifiedName ?: return@forEach
-            irTypeParameter.addExtendsType(
-                extendsType = irTypeReference(referencedClassName).apply {
-                    addLanguageProperty(PSI_CLASS, referencedClass)
-                }.build()
-            )
-        }
-        irClassBuilder.addTypeParameter(irTypeParameter.build())
+        irClassBuilder.addTypeParameter(convertTypeParameter(typeParameter))
     }
 
     // Convert superclass and interfaces
