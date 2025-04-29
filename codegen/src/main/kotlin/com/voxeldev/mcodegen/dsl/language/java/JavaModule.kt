@@ -18,7 +18,12 @@ import kotlin.io.path.Path
 
 object JavaModule : LanguageModule {
 
+    const val INDENT_PROPERTY_NAME = "indent"
+    private const val INDENT_PROPERTY_DEFAULT_VALUE = "    "
+
     internal const val PSI_CLASS = "psi_class"
+
+    override val languageName: String = "java"
 
     context(ScenarioScope)
     override fun parse(sourcePath: String): IrFile {
@@ -61,7 +66,11 @@ object JavaModule : LanguageModule {
         }
 
         val poetFileBuilder = JavaFile.builder(filePackage, convertClass(irClass))
-        poetFileBuilder.indent("    ")
+
+        val indentProperty = scenarioConfiguration.properties.find { property ->
+            property.language == languageName && property.propertyName == INDENT_PROPERTY_NAME
+        }?.propertyValue as? String
+        poetFileBuilder.indent(indentProperty ?: INDENT_PROPERTY_DEFAULT_VALUE)
 
         poetFileBuilder.build().writeTo(System.out)
     }

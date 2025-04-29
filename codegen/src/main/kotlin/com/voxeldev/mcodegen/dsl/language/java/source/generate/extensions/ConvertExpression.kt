@@ -137,7 +137,7 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
 
         else -> {
             if (irExpression is IrExpressionUnknown) {
-                val representation = irExpression.stringRepresentation.firstOrNull { it.language == "java" }
+                val representation = irExpression.stringRepresentation.firstOrNull { it.language == languageName }
                 representation?.let {
                     return poetCodeBlock.add(representation.representation).build()
                 }

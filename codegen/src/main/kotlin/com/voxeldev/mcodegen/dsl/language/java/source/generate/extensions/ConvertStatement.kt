@@ -214,7 +214,7 @@ internal fun convertStatement(
 
         else -> {
             if (irStatement is IrStatementUnknown) {
-                val representation = irStatement.stringRepresentation.firstOrNull { it.language == "java" }
+                val representation = irStatement.stringRepresentation.firstOrNull { it.language == languageName }
                 representation?.let {
                     return poetCodeBlock.apply {
                         add(representation.representation)

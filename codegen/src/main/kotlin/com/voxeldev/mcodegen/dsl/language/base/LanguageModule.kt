@@ -7,6 +7,8 @@ import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapper
 
 interface LanguageModule {
 
+    val languageName: String
+
     context(ScenarioScope)
     fun parse(sourcePath: String): IrFile
 

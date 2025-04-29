@@ -122,7 +122,7 @@ internal fun convertExpression(psiExpression: PsiExpression?): IrExpression {
         else -> {
             irExpressionUnknown().apply {
                 addStringRepresentation(
-                    IrStringRepresentation("java", psiExpression.text)
+                    IrStringRepresentation(languageName, psiExpression.text)
                 )
             }.build()
         }

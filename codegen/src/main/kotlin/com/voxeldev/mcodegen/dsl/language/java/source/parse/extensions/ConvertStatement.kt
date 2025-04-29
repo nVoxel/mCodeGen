@@ -225,7 +225,7 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
         else -> {
             irStatementUnknown().apply {
                 addStringRepresentation(
-                    IrStringRepresentation("java", psiStatement.text)
+                    IrStringRepresentation(languageName, psiStatement.text)
                 )
             }.build()
         }
