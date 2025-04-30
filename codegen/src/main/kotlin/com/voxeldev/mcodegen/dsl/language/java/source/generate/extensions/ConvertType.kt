@@ -6,7 +6,6 @@ import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeVariableName
 import com.voxeldev.mcodegen.dsl.ir.IrArrayType
-import com.voxeldev.mcodegen.dsl.ir.IrFunctionType
 import com.voxeldev.mcodegen.dsl.ir.IrGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
@@ -50,6 +49,6 @@ internal fun convertType(
             }
         }
 
-        is IrFunctionType -> throw NotImplementedError("Function types support not implemented for Java")
+        else -> throw NotImplementedError("Support of this type is not implemented for Java")
     }
 }

@@ -48,6 +48,10 @@ private fun convertField(psiClass: PsiClass, psiField: PsiField): IrField? {
 
     irFieldBuilder.mutable(isMutable = !psiField.hasModifierProperty(PsiModifier.FINAL))
 
+    psiField.annotations.forEach { annotation ->
+        irFieldBuilder.addAnnotation(convertAnnotation(annotation))
+    }
+
     if (psiField.hasInitializer()) {
         irFieldBuilder.initializer(
             initializer = irExpressionStatement(

@@ -1,21 +1,21 @@
 package com.voxeldev.mcodegen.dsl.language.java.source.generate.extensions
 
-import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.CodeBlock
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeSpec
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
+import com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions.JAVA_METHOD_DEFAULT_VALUE
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
 import javax.lang.model.element.Modifier
-import kotlin.collections.forEach
 
 context(JavaModule, ScenarioScope)
 internal fun convertMethods(
@@ -58,16 +58,12 @@ private fun convertMethod(
             addModifiers(Modifier.STATIC)
         }
 
-        if (irMethod.isOverride) {
-            addAnnotation(Override::class.java)
-        }
-
         if (irMethod.languageProperties[PsiModifier.NATIVE] == true) {
             addModifiers(Modifier.NATIVE)
         }
 
         irMethod.annotations.forEach { irAnnotation ->
-            addAnnotation(ClassName.bestGuess(irAnnotation.name))
+            addAnnotation(convertAnnotation(irClass, irAnnotation))
         }
 
         irMethod.typeParameters.forEach { irTypeParameter ->
@@ -83,10 +79,15 @@ private fun convertMethod(
             )
         }
 
+        val defaultValue = irMethod.languageProperties[JAVA_METHOD_DEFAULT_VALUE] as? IrExpression
+        defaultValue?.let {
+            defaultValue(convertExpression(irClass, defaultValue))
+        }
+
         irMethod.body?.let { irMethodBody ->
             val bodyCodeBlock = CodeBlock.builder()
             irMethodBody.statements.forEach { irBodyStatement ->
-                bodyCodeBlock.add(convertStatement(irBodyStatement))
+                bodyCodeBlock.add(convertStatement(irClass, irBodyStatement))
             }
             addCode(bodyCodeBlock.build())
         }

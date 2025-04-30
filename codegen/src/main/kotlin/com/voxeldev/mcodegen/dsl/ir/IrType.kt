@@ -4,7 +4,7 @@ package com.voxeldev.mcodegen.dsl.ir
  * Base class for all types in the IR (Intermediate Representation) system.
  * This class represents the type system used in the code generation process.
  */
-sealed interface IrType : IrElement {
+interface IrType : IrElement {
     val isNullable: Boolean
 }
 

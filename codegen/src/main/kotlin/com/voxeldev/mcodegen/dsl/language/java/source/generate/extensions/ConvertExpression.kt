@@ -5,6 +5,7 @@ import com.squareup.javapoet.CodeBlock
 import com.voxeldev.mcodegen.dsl.ir.IrAssignmentExpression
 import com.voxeldev.mcodegen.dsl.ir.IrBinaryExpression
 import com.voxeldev.mcodegen.dsl.ir.IrCastExpression
+import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrLiteralExpression
@@ -12,13 +13,17 @@ import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.IrObjectCreationExpression
 import com.voxeldev.mcodegen.dsl.ir.IrTernaryExpression
 import com.voxeldev.mcodegen.dsl.ir.IrTypeCheckExpression
+import com.voxeldev.mcodegen.dsl.ir.IrTypeReferenceIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrUnaryExpression
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.language.java.ir.IrExpressionUnknown
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 
 context(JavaModule, ScenarioScope)
-internal fun convertExpression(irExpression: IrExpression): CodeBlock {
+internal fun convertExpression(
+    containingClass: IrClass,
+    irExpression: IrExpression,
+): CodeBlock {
     val poetCodeBlock = CodeBlock.builder()
 
     when (irExpression) {
@@ -27,20 +32,47 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
         }
 
         is IrIdentifierExpression -> {
-            poetCodeBlock.add("\$N", irExpression.name)
+            poetCodeBlock.add("\$N", irExpression.expression)
+        }
+
+        is IrTypeReferenceIdentifierExpression -> {
+            if (irExpression.expression != null) {
+                poetCodeBlock.add(
+                    "\$T.\$N",
+                    convertType(irExpression.referencedType),
+                    irExpression.expression,
+                )
+            } else {
+                poetCodeBlock.add(
+                    "\$T",
+                    convertType(irExpression.referencedType)
+                )
+            }
         }
 
         is IrMethodCallExpression -> {
             poetCodeBlock.apply {
                 irExpression.receiver?.let { receiver ->
-                    add("\$L.", convertExpression(receiver))
+                    add("\$L.", convertExpression(containingClass, receiver))
                 }
 
-                add("\$N(", irExpression.methodName)
+                when (irExpression.irMethodCallKind) {
+                    is IrMethodCallExpression.IrThisMethodCallKind -> {
+                        add("this(")
+                    }
+
+                    is IrMethodCallExpression.IrSuperMethodCallKind -> {
+                        add("super(")
+                    }
+
+                    else -> {
+                        add("\$N(", irExpression.methodName)
+                    }
+                }
 
                 add(
                     CodeBlock.join(
-                        irExpression.arguments.map { argument -> convertExpression(argument) },
+                        irExpression.arguments.map { argument -> convertExpression(containingClass, argument) },
                         ", "
                     )
                 )
@@ -56,7 +88,7 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
                 add("new \$T(", className)
                 add(
                     CodeBlock.join(
-                        irExpression.constructorArgs.map { argument -> convertExpression(argument) },
+                        irExpression.constructorArgs.map { argument -> convertExpression(containingClass, argument) },
                         ", "
                     )
                 )
@@ -68,9 +100,9 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
             poetCodeBlock.apply {
                 add(
                     "\$L \$L \$L",
-                    convertExpression(irExpression.left),
+                    convertExpression(containingClass, irExpression.left),
                     convertBinaryOperator(irExpression.operator),
-                    convertExpression(irExpression.right),
+                    convertExpression(containingClass, irExpression.right),
                 )
             }
         }
@@ -81,12 +113,12 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
                     add(
                         "\$L\$L",
                         convertUnaryOperator(irExpression.operator),
-                        convertExpression(irExpression.operand),
+                        convertExpression(containingClass, irExpression.operand),
                     )
                 } else {
                     add(
                         "\$L\$L",
-                        convertExpression(irExpression.operand),
+                        convertExpression(containingClass, irExpression.operand),
                         convertUnaryOperator(irExpression.operator),
                     )
                 }
@@ -97,9 +129,9 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
             poetCodeBlock.apply {
                 add(
                     "\$L \$L \$L",
-                    convertExpression(irExpression.target),
+                    convertExpression(containingClass, irExpression.target),
                     convertAssignmentOperator(irExpression.operator),
-                    convertExpression(irExpression.value),
+                    convertExpression(containingClass, irExpression.value),
                 )
             }
         }
@@ -108,9 +140,9 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
             poetCodeBlock.apply {
                 add(
                     "\$L ? \$L : \$L",
-                    convertExpression(irExpression.condition),
-                    convertExpression(irExpression.ifTrue),
-                    convertExpression(irExpression.ifFalse),
+                    convertExpression(containingClass, irExpression.condition),
+                    convertExpression(containingClass, irExpression.ifTrue),
+                    convertExpression(containingClass, irExpression.ifFalse),
                 )
             }
         }
@@ -120,7 +152,7 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
                 add(
                     "(\$T) \$L",
                     convertType(irExpression.targetType),
-                    convertExpression(irExpression.expression),
+                    convertExpression(containingClass, irExpression.expression),
                 )
             }
         }
@@ -129,7 +161,7 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
             poetCodeBlock.apply {
                 add(
                     "\$L instanceof \$T",
-                    convertExpression(irExpression.expression),
+                    convertExpression(containingClass, irExpression.expression),
                     convertType(irExpression.checkType),
                 )
             }

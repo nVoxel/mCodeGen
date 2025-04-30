@@ -2,7 +2,6 @@ package com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions
 
 import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.builders.IrClassBuilder
-import com.voxeldev.mcodegen.dsl.ir.builders.irAnnotation
 import com.voxeldev.mcodegen.dsl.ir.builders.irMethod
 import com.voxeldev.mcodegen.dsl.ir.builders.irMethodBody
 import com.voxeldev.mcodegen.dsl.ir.builders.irParameter
@@ -12,9 +11,12 @@ import com.voxeldev.mcodegen.dsl.language.java.ir.privateVisibility
 import com.voxeldev.mcodegen.dsl.language.java.ir.protectedVisibility
 import com.voxeldev.mcodegen.dsl.language.java.ir.publicVisibility
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
+import org.jetbrains.kotlin.com.intellij.psi.PsiAnnotationMethod
 import org.jetbrains.kotlin.com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.com.intellij.psi.PsiMethod
 import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
+
+internal const val JAVA_METHOD_DEFAULT_VALUE = "javaMethodDefaultValue"
 
 context(JavaModule, ScenarioScope)
 internal fun convertMethods(psiClass: PsiClass, psiMethods: Array<PsiMethod>, irClassBuilder: IrClassBuilder) {
@@ -52,9 +54,7 @@ internal fun convertMethod(psiClass: PsiClass, psiMethod: PsiMethod): IrMethod {
     }
 
     psiMethod.annotations.forEach { annotation ->
-        irMethodBuilder.addAnnotation(
-            irAnnotation(annotation.qualifiedName ?: annotation.text).build()
-        )
+        irMethodBuilder.addAnnotation(convertAnnotation(annotation))
     }
 
     psiMethod.parameterList.parameters.forEach { parameter ->
@@ -68,6 +68,15 @@ internal fun convertMethod(psiClass: PsiClass, psiMethod: PsiMethod): IrMethod {
 
     psiMethod.typeParameters.forEach { typeParameter ->
         irMethodBuilder.addTypeParameter(convertTypeParameter(typeParameter))
+    }
+
+    if (psiMethod is PsiAnnotationMethod) {
+        psiMethod.defaultValue?.let { defaultValue ->
+            irMethodBuilder.addLanguageProperty(
+                JAVA_METHOD_DEFAULT_VALUE,
+                convertAnnotationMemberValue(defaultValue),
+            )
+        }
     }
 
     // Convert method body if present

@@ -28,8 +28,10 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
             is IrVisibilityPrivate -> addModifiers(Modifier.PRIVATE)
         }
 
-        if (irClass.languageProperties[PsiModifier.ABSTRACT] == true) {
-            addModifiers(Modifier.ABSTRACT)
+        if (irClass.kind != IrClassKind.INTERFACE && irClass.kind != IrClassKind.ANNOTATION) {
+            if (irClass.languageProperties[PsiModifier.ABSTRACT] == true) {
+                addModifiers(Modifier.ABSTRACT)
+            }
         }
 
         if (irClass.languageProperties[PsiModifier.FINAL] == true) {
@@ -38,6 +40,10 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
 
         if (irClass.languageProperties[PsiModifier.STATIC] == true) {
             addModifiers(Modifier.STATIC)
+        }
+
+        irClass.annotations.forEach { irAnnotation ->
+            addAnnotation(convertAnnotation(irClass, irAnnotation))
         }
 
         irClass.typeParameters.forEach { irTypeParameter ->
@@ -65,6 +71,8 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
         convertFields(irClass, irClass.fields, this)
 
         convertMethods(irClass, irClass.methods, this)
+
+        convertInitializers(irClass, irClass.initializers, this)
 
         irClass.nestedClasses.forEach { nestedIrClass ->
             addType(convertClass(irClass = nestedIrClass))

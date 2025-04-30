@@ -27,11 +27,31 @@ data class IrLiteralExpression(
 )
 
 /**
- * An identifier referencing a variable, parameter, constant, class name, etc.
+ * An identifier referencing a variable, parameter, constant, etc.
+ * Must not reference any type that should be dynamically imported.
  * e.g., `myVariable` or `System` or `MyClass`
  */
 data class IrIdentifierExpression(
-    val name: String,
+    val expression: String,
+    override val stringRepresentation: List<IrStringRepresentation>,
+    override val location: IrLocation?,
+    override val annotations: List<IrAnnotation>,
+    override val languageProperties: Map<String, Any>,
+) : IrExpression(
+    stringRepresentation = stringRepresentation,
+    location = location,
+    annotations = annotations,
+    languageProperties = languageProperties,
+)
+
+/**
+ * An identifier referencing a variable, parameter, constant, class name, etc.
+ * Can reference a type that should be dynamically imported.
+ * e.g., `myVariable` or `System` or `MyClass`
+ */
+data class IrTypeReferenceIdentifierExpression(
+    val referencedType: IrType,
+    val expression: String?,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -68,6 +88,7 @@ data class IrMethodCallExpression(
     val receiver: IrExpression?, // null if it's a top-level function call
     val methodName: String,
     val arguments: List<IrExpression>,
+    val irMethodCallKind: IrMethodCallKind,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -77,7 +98,13 @@ data class IrMethodCallExpression(
     location = location,
     annotations = annotations,
     languageProperties = languageProperties,
-)
+) {
+    interface IrMethodCallKind
+
+    data object IrDefaultMethodCallKind : IrMethodCallKind
+    data object IrThisMethodCallKind : IrMethodCallKind
+    data object IrSuperMethodCallKind : IrMethodCallKind
+}
 
 /**
  * An object creation expression (like `new MyClass(...)` in Java or `MyClass(...)` in Kotlin).

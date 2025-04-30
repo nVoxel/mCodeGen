@@ -13,6 +13,7 @@ data class IrClass(
     val superClasses: List<IrClass>,
     val fields: List<IrField>,
     val methods: List<IrMethod>,
+    val initializers: List<IrClassInitializer>,
     val nestedClasses: List<IrClass>,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
@@ -41,3 +42,16 @@ data class IrTypeParameter(
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrElement
+
+data class IrClassInitializer(
+    val kind: IrClassInitializerKind,
+    val body: IrMethodBody?,
+    override val location: IrLocation? = null,
+    override val annotations: List<IrAnnotation> = emptyList(),
+    override val languageProperties: Map<String, Any> = emptyMap()
+) : IrElement {
+    interface IrClassInitializerKind
+
+    data object IrInstanceClassInitializerKind : IrClassInitializerKind
+    data object IrStaticClassInitializerKind : IrClassInitializerKind
+}

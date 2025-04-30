@@ -72,7 +72,10 @@ object JavaModule : LanguageModule {
         }?.propertyValue as? String
         poetFileBuilder.indent(indentProperty ?: INDENT_PROPERTY_DEFAULT_VALUE)
 
-        poetFileBuilder.build().writeTo(System.out)
+        val outputPath = Path(scenarioConfiguration.outputDir, applyToBasePath)
+        val outputFile = File(outputPath.toString())
+
+        poetFileBuilder.build().writeToFile(outputFile)
     }
 
     context(ScenarioScope)

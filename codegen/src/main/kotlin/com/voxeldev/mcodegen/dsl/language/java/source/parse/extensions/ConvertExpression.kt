@@ -1,6 +1,7 @@
 package com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions
 
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
+import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.builders.irAssignmentExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irBinaryExpression
@@ -11,17 +12,22 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irObjectCreationExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irTernaryExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeCheckExpression
+import com.voxeldev.mcodegen.dsl.ir.builders.irTypeReference
+import com.voxeldev.mcodegen.dsl.ir.builders.irTypeReferenceIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irUnaryExpression
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.language.java.ir.builders.irExpressionUnknown
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiAssignmentExpression
 import org.jetbrains.kotlin.com.intellij.psi.PsiBinaryExpression
+import org.jetbrains.kotlin.com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.com.intellij.psi.PsiConditionalExpression
 import org.jetbrains.kotlin.com.intellij.psi.PsiExpression
+import org.jetbrains.kotlin.com.intellij.psi.PsiField
 import org.jetbrains.kotlin.com.intellij.psi.PsiInstanceOfExpression
 import org.jetbrains.kotlin.com.intellij.psi.PsiLiteralExpression
 import org.jetbrains.kotlin.com.intellij.psi.PsiMethodCallExpression
+import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
 import org.jetbrains.kotlin.com.intellij.psi.PsiNewExpression
 import org.jetbrains.kotlin.com.intellij.psi.PsiPostfixExpression
 import org.jetbrains.kotlin.com.intellij.psi.PsiPrefixExpression
@@ -40,7 +46,25 @@ internal fun convertExpression(psiExpression: PsiExpression?): IrExpression {
         }
 
         is PsiReferenceExpression -> {
-            irIdentifierExpression(psiExpression.text).build()
+            val target = psiExpression.resolve()
+
+            if (target is PsiClass) {
+                irTypeReferenceIdentifierExpression(
+                    referencedType = irTypeReference(
+                        referencedClassName = target.qualifiedName ?: "Ir:UnnamedClass"
+                    ).build(),
+                ).build()
+            } else if (target is PsiField && target.hasModifierProperty(PsiModifier.STATIC)) {
+                irTypeReferenceIdentifierExpression(
+                    referencedType = irTypeReference(
+                        referencedClassName = target.containingClass?.qualifiedName ?: "Ir:UnnamedClass"
+                    ).build()
+                ).apply {
+                    expression(target.name ?: target.text)
+                }.build()
+            } else {
+                irIdentifierExpression(psiExpression.text).build()
+            }
         }
 
         is PsiMethodCallExpression -> {
@@ -53,6 +77,13 @@ internal fun convertExpression(psiExpression: PsiExpression?): IrExpression {
                 psiExpression.argumentList.expressions.forEach { argumentExpression ->
                     addArgument(convertExpression(argumentExpression))
                 }
+                methodCallKind(
+                    callKind = when (psiExpression.methodExpression.referenceName) {
+                        "this" -> IrMethodCallExpression.IrThisMethodCallKind
+                        "super" -> IrMethodCallExpression.IrSuperMethodCallKind
+                        else -> IrMethodCallExpression.IrDefaultMethodCallKind
+                    }
+                )
             }.build()
         }
 

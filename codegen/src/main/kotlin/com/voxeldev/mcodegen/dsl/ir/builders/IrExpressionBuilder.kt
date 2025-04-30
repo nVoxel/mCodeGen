@@ -15,6 +15,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.IrTernaryExpression
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypeCheckExpression
+import com.voxeldev.mcodegen.dsl.ir.IrTypeReferenceIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrUnaryExpression
 
 /**
@@ -69,16 +70,48 @@ class IrLiteralExpressionBuilder(private val value: String) : IrExpressionBuilde
 /**
  * Creates a new [IrIdentifierExpressionBuilder] instance with the given name.
  */
-fun irIdentifierExpression(name: String): IrIdentifierExpressionBuilder = IrIdentifierExpressionBuilder(name)
+fun irIdentifierExpression(expression: String): IrIdentifierExpressionBuilder =
+    IrIdentifierExpressionBuilder(expression)
 
 /**
  * Builder class for creating [IrIdentifierExpression] instances.
  */
-class IrIdentifierExpressionBuilder(private val name: String) : IrExpressionBuilder() {
+class IrIdentifierExpressionBuilder(private val expression: String) : IrExpressionBuilder() {
     fun build(): IrIdentifierExpression {
         val properties = buildExpressionProperties()
         return IrIdentifierExpression(
-            name = name,
+            expression = expression,
+            stringRepresentation = properties.stringRepresentation,
+            location = properties.location,
+            annotations = properties.annotations,
+            languageProperties = properties.languageProperties,
+        )
+    }
+}
+
+/**
+ * Creates a new [IrTypeReferenceIdentifierExpressionBuilder] instance with the given name.
+ */
+fun irTypeReferenceIdentifierExpression(referencedType: IrType): IrTypeReferenceIdentifierExpressionBuilder =
+    IrTypeReferenceIdentifierExpressionBuilder(referencedType = referencedType)
+
+/**
+ * Builder class for creating [IrTypeReferenceIdentifierExpression] instances.
+ */
+class IrTypeReferenceIdentifierExpressionBuilder(
+    private val referencedType: IrType,
+) : IrExpressionBuilder() {
+    private var expression: String? = null
+
+    fun expression(expression: String) {
+        this.expression = expression
+    }
+
+    fun build(): IrTypeReferenceIdentifierExpression {
+        val properties = buildExpressionProperties()
+        return IrTypeReferenceIdentifierExpression(
+            referencedType = referencedType,
+            expression = expression,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,
@@ -128,6 +161,7 @@ fun irMethodCallExpression(methodName: String): IrMethodCallExpressionBuilder =
 class IrMethodCallExpressionBuilder(private val methodName: String) : IrExpressionBuilder() {
     private var receiver: IrExpression? = null
     private var arguments: MutableList<IrExpression> = mutableListOf()
+    private var irMethodCallKind : IrMethodCallExpression.IrMethodCallKind = IrMethodCallExpression.IrDefaultMethodCallKind
 
     fun receiver(receiver: IrExpression?) {
         this.receiver = receiver
@@ -137,12 +171,17 @@ class IrMethodCallExpressionBuilder(private val methodName: String) : IrExpressi
         arguments.add(argument)
     }
 
+    fun methodCallKind(callKind: IrMethodCallExpression.IrMethodCallKind) {
+        irMethodCallKind = callKind
+    }
+
     fun build(): IrMethodCallExpression {
         val properties = buildExpressionProperties()
         return IrMethodCallExpression(
             receiver = receiver,
             methodName = methodName,
             arguments = arguments,
+            irMethodCallKind = irMethodCallKind,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,

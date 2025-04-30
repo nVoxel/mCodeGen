@@ -26,7 +26,7 @@ private fun convertClass(psiClass: PsiClass): IrClass {
 
     val irClassBuilder = irClass(className)
 
-    irClassBuilder.addLanguageProperty("simpleName", psiClass.name?: "Ir:UnnamedClass")
+    irClassBuilder.addLanguageProperty("simpleName", psiClass.name ?: "Ir:UnnamedClass")
 
     irClassBuilder.kind(
         when {
@@ -65,6 +65,10 @@ private fun convertClass(psiClass: PsiClass): IrClass {
         )
     }
 
+    psiClass.annotations.forEach { annotation ->
+        irClassBuilder.addAnnotation(convertAnnotation(annotation))
+    }
+
     psiClass.typeParameters.forEach { typeParameter ->
         irClassBuilder.addTypeParameter(convertTypeParameter(typeParameter))
     }
@@ -84,6 +88,9 @@ private fun convertClass(psiClass: PsiClass): IrClass {
 
     // Convert methods
     convertMethods(psiClass, psiClass.methods, irClassBuilder)
+
+    // Convert initializers
+    convertInitializers(psiClass.initializers, irClassBuilder)
 
     // Convert nested classes
     psiClass.innerClasses.forEach { innerClass ->

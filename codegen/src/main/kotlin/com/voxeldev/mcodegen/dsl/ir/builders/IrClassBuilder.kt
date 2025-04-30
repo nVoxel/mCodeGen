@@ -1,9 +1,12 @@
 package com.voxeldev.mcodegen.dsl.ir.builders
 
 import com.voxeldev.mcodegen.dsl.ir.IrClass
+import com.voxeldev.mcodegen.dsl.ir.IrClassInitializer
+import com.voxeldev.mcodegen.dsl.ir.IrClassInitializer.IrClassInitializerKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrField
 import com.voxeldev.mcodegen.dsl.ir.IrMethod
+import com.voxeldev.mcodegen.dsl.ir.IrMethodBody
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypeParameter
@@ -26,6 +29,7 @@ class IrClassBuilder internal constructor(private val name: String) : IrElementB
     private var superClasses: MutableList<IrClass> = mutableListOf()
     private var fields: MutableList<IrField> = mutableListOf()
     private var methods: MutableList<IrMethod> = mutableListOf()
+    private var initializers: MutableList<IrClassInitializer> = mutableListOf()
     private var nestedClasses: MutableList<IrClass> = mutableListOf()
 
     fun kind(kind: IrClassKind) {
@@ -56,6 +60,10 @@ class IrClassBuilder internal constructor(private val name: String) : IrElementB
         nestedClasses.add(nestedClass)
     }
 
+    fun addInitializer(initializer: IrClassInitializer) {
+        initializers.add(initializer)
+    }
+
     fun build(): IrClass {
         return IrClass(
             name = name,
@@ -65,6 +73,7 @@ class IrClassBuilder internal constructor(private val name: String) : IrElementB
             superClasses = superClasses,
             fields = fields,
             methods = methods,
+            initializers = initializers,
             nestedClasses = nestedClasses,
             location = location,
             annotations = annotations,
@@ -132,6 +141,28 @@ class IrTypeParameterBuilder internal constructor(
         return IrTypeParameter(
             name = name,
             extendsList = extendsList,
+            location = location,
+            annotations = annotations,
+            languageProperties = languageProperties
+        )
+    }
+}
+
+fun irClassInitializer(kind: IrClassInitializerKind): IrClassInitializerBuilder = IrClassInitializerBuilder(kind)
+
+class IrClassInitializerBuilder internal constructor(
+    private val kind: IrClassInitializerKind,
+) : IrElementBuilder() {
+    private var initializerBody: IrMethodBody? = null
+
+    fun body(body: IrMethodBody) {
+        initializerBody = body
+    }
+
+    fun build(): IrClassInitializer {
+        return IrClassInitializer(
+            kind = kind,
+            body = initializerBody,
             location = location,
             annotations = annotations,
             languageProperties = languageProperties

@@ -12,7 +12,6 @@ import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
 import javax.lang.model.element.Modifier
-import kotlin.collections.forEach
 
 context(JavaModule, ScenarioScope)
 internal fun convertFields(
@@ -47,8 +46,12 @@ private fun convertField(
             addModifiers(Modifier.FINAL)
         }
 
+        irField.annotations.forEach { irAnnotation ->
+            addAnnotation(convertAnnotation(irClass, irAnnotation))
+        }
+
         irField.initializer?.let { initializerIrStatement ->
-            initializer(convertStatement(initializerIrStatement, addSemicolon = false, addLineBreak = false))
+            initializer(convertStatement(irClass, initializerIrStatement, addSemicolon = false, addLineBreak = false))
         }
     }.build()
 }

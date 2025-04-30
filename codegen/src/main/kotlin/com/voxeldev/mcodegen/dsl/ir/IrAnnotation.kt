@@ -6,5 +6,11 @@ package com.voxeldev.mcodegen.dsl.ir
  */
 data class IrAnnotation(
     val name: String,
+    val parameters: List<IrAnnotationParameter>,
     val languageProperties: Map<String, Any>,
+)
+
+data class IrAnnotationParameter(
+    val parameterName: String,
+    val parameterValue: IrExpression,
 )

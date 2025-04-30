@@ -24,12 +24,20 @@ fun main() {
         val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiDesktop.java")
 
         // for test
-        val testStatementsIR : IrFile = JavaModule.parse(sourcePath = "test_java_statements.java")
-        JavaModule.generate(testStatementsIR, "test", listOf())
+        val testInitializersIR : IrFile = JavaModule.parse(sourcePath = "test_java_initializers.java")
+        JavaModule.generate(testInitializersIR, "test", listOf())
 
         // for test
         val testExpressionsIR : IrFile = JavaModule.parse(sourcePath = "test_java_expressions.java")
         JavaModule.generate(testExpressionsIR, "test", listOf())
+
+        // for test
+        val testAnnotationsIR : IrFile = JavaModule.parse(sourcePath = "test_java_annotations.java")
+        JavaModule.generate(testAnnotationsIR, "test", listOf())
+
+        // for test
+        val testStatementsIR : IrFile = JavaModule.parse(sourcePath = "test_java_statements.java")
+        JavaModule.generate(testStatementsIR, "test", listOf())
 
         // for test
         val testGenericsIR : IrFile = JavaModule.parse(sourcePath = "test_java_generic.java")

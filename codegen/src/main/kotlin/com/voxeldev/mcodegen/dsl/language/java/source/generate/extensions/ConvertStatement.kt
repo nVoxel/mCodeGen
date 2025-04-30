@@ -3,6 +3,7 @@ package com.voxeldev.mcodegen.dsl.language.java.source.generate.extensions
 import com.squareup.javapoet.CodeBlock
 import com.voxeldev.mcodegen.dsl.ir.IrBlockStatement
 import com.voxeldev.mcodegen.dsl.ir.IrBreakStatement
+import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrContinueStatement
 import com.voxeldev.mcodegen.dsl.ir.IrDoWhileStatement
 import com.voxeldev.mcodegen.dsl.ir.IrExpressionStatement
@@ -20,10 +21,10 @@ import com.voxeldev.mcodegen.dsl.ir.IrWhileStatement
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.language.java.ir.IrStatementUnknown
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
-import kotlin.collections.forEach
 
 context(JavaModule, ScenarioScope)
 internal fun convertStatement(
+    containingClass: IrClass,
     irStatement: IrStatement,
     addSemicolon: Boolean = true,
     addLineBreak: Boolean = true,
@@ -34,7 +35,7 @@ internal fun convertStatement(
     when (irStatement) {
         is IrExpressionStatement -> {
             poetCodeBlock.apply {
-                add(convertExpression(irStatement.expression))
+                add(convertExpression(containingClass, irStatement.expression))
                 if (addSemicolon) add(";")
                 if (addLineBreak) add("\n")
             }
@@ -54,7 +55,7 @@ internal fun convertStatement(
                     }
 
                     irStatement.initializer?.let { initializer ->
-                        add(" = \$L", convertExpression(initializer))
+                        add(" = \$L", convertExpression(containingClass, initializer))
                     }
                 }.build()
 
@@ -69,7 +70,7 @@ internal fun convertStatement(
                 if (useCodeBlockBrackets) add("{")
                 add("\n\$>")
                 irStatement.statements.forEach { blockStatement ->
-                    add(convertStatement(blockStatement))
+                    add(convertStatement(containingClass, blockStatement))
                 }
                 add("\$<")
                 if (useCodeBlockBrackets) add("}")
@@ -79,9 +80,10 @@ internal fun convertStatement(
 
         is IrIfStatement -> {
             poetCodeBlock.apply {
-                add("if (\$L) ", convertExpression(irStatement.condition))
+                add("if (\$L) ", convertExpression(containingClass, irStatement.condition))
                 add(
                     convertStatement(
+                        containingClass,
                         irStatement.thenStatement,
                         addLineBreak = irStatement.thenStatement !is IrBlockStatement
                                 || irStatement.elseStatement == null,
@@ -92,7 +94,7 @@ internal fun convertStatement(
                         add(" ")
                     }
                     add("else ")
-                    add(convertStatement(irStatement.elseStatement))
+                    add(convertStatement(containingClass, irStatement.elseStatement))
                 }
             }
         }
@@ -102,25 +104,33 @@ internal fun convertStatement(
                 add("for (")
                 irStatement.initializer?.let { initializer ->
                     val addDividers = irStatement.condition != null || irStatement.update != null
-                    add("\$L", convertStatement(initializer, addLineBreak = false, addSemicolon = addDividers))
+                    add(
+                        "\$L",
+                        convertStatement(
+                            containingClass,
+                            initializer,
+                            addLineBreak = false,
+                            addSemicolon = addDividers,
+                        )
+                    )
                     if (addDividers) {
                         add(" ")
                     }
                 }
 
                 irStatement.condition?.let { condition ->
-                    add("\$L", convertExpression(condition))
+                    add("\$L", convertExpression(containingClass, condition))
                     if (irStatement.update != null) {
                         add("; ")
                     }
                 }
 
                 irStatement.update?.let { update ->
-                    add("\$L", convertStatement(update, addLineBreak = false, addSemicolon = false))
+                    add("\$L", convertStatement(containingClass, update, addLineBreak = false, addSemicolon = false))
                 }
 
                 add(") ")
-                add(convertStatement(irStatement.body))
+                add(convertStatement(containingClass, irStatement.body))
             }
         }
 
@@ -128,8 +138,8 @@ internal fun convertStatement(
             poetCodeBlock.apply {
                 add(
                     "while (\$L) \$L",
-                    convertExpression(irStatement.condition),
-                    convertStatement(irStatement.body),
+                    convertExpression(containingClass, irStatement.condition),
+                    convertStatement(containingClass, irStatement.body),
                 )
             }
         }
@@ -138,8 +148,8 @@ internal fun convertStatement(
             poetCodeBlock.apply {
                 add(
                     "do \$L while (\$L)",
-                    convertStatement(irStatement.body, addSemicolon = true, addLineBreak = false),
-                    convertExpression(irStatement.condition),
+                    convertStatement(containingClass, irStatement.body, addSemicolon = true, addLineBreak = false),
+                    convertExpression(containingClass, irStatement.condition),
                 )
                 if (addSemicolon) add(";")
                 if (addLineBreak) add("\n")
@@ -148,8 +158,8 @@ internal fun convertStatement(
 
         is IrSwitchStatement -> {
             poetCodeBlock.apply {
-                add("switch (\$L) {\n\$>", convertExpression(irStatement.expression))
-                add(convertSwitchStatementCases(irStatement.cases))
+                add("switch (\$L) {\n\$>", convertExpression(containingClass, irStatement.expression))
+                add(convertSwitchStatementCases(containingClass, irStatement.cases))
                 add("\$<}")
                 if (addLineBreak) add("\n")
             }
@@ -159,7 +169,7 @@ internal fun convertStatement(
             poetCodeBlock.apply {
                 add("return")
                 irStatement.expression?.let { returnExpression ->
-                    add(" \$L", convertExpression(returnExpression))
+                    add(" \$L", convertExpression(containingClass, returnExpression))
                 }
                 if (addSemicolon) add(";")
                 if (addLineBreak) add("\n")
@@ -184,7 +194,7 @@ internal fun convertStatement(
 
         is IrThrowStatement -> {
             poetCodeBlock.apply {
-                add("throw \$L", convertExpression(irStatement.expression))
+                add("throw \$L", convertExpression(containingClass, irStatement.expression))
                 if (addSemicolon) add(";")
                 if (addLineBreak) add("\n")
             }
@@ -200,12 +210,12 @@ internal fun convertStatement(
                     throw IllegalArgumentException("Try-catch statement in Java accepts only block statement as a finally body")
                 }
 
-                add("try \$L", convertStatement(irStatement.tryBlock, addLineBreak = false))
+                add("try \$L", convertStatement(containingClass, irStatement.tryBlock, addLineBreak = false))
 
-                add(convertTryCatchStatementClauses(irStatement.catchClauses))
+                add(convertTryCatchStatementClauses(containingClass, irStatement.catchClauses))
 
                 irStatement.finallyBlock?.let { irFinallyStatement ->
-                    add(" finally \$L", convertStatement(irFinallyStatement, addLineBreak = false))
+                    add(" finally \$L", convertStatement(containingClass, irFinallyStatement, addLineBreak = false))
                 }
 
                 if (addLineBreak) add("\n")
@@ -232,18 +242,19 @@ internal fun convertStatement(
 
 context(JavaModule, ScenarioScope)
 private fun convertSwitchStatementCases(
+    containingClass: IrClass,
     cases: List<IrSwitchStatementCase>,
 ): CodeBlock {
     return CodeBlock.builder().apply {
         cases.forEach { switchStatementCase ->
             if (switchStatementCase.matchExpression != null) {
-                add("case \$L:", convertExpression(switchStatementCase.matchExpression))
+                add("case \$L:", convertExpression(containingClass, switchStatementCase.matchExpression))
             } else {
                 add("default:")
             }
 
             if (switchStatementCase.body != null) {
-                add(convertStatement(switchStatementCase.body, useCodeBlockBrackets = false))
+                add(convertStatement(containingClass, switchStatementCase.body, useCodeBlockBrackets = false))
             }
         }
     }.build()
@@ -251,6 +262,7 @@ private fun convertSwitchStatementCases(
 
 context(JavaModule, ScenarioScope)
 private fun convertTryCatchStatementClauses(
+    containingClass: IrClass,
     clauses: List<IrTryCatchStatementClause>,
 ): CodeBlock {
     return CodeBlock.builder().apply {
@@ -266,7 +278,7 @@ private fun convertTryCatchStatementClauses(
             )
 
             tryCatchStatementClause.body?.let { irBodyStatement ->
-                add(convertStatement(irBodyStatement, addLineBreak = false))
+                add(convertStatement(containingClass, irBodyStatement, addLineBreak = false))
             }
         }
     }.build()
