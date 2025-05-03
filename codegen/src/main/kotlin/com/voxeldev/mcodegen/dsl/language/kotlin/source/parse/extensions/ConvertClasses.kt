@@ -23,7 +23,9 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -60,11 +62,8 @@ private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
     irClassBuilder.visibility(
         when {
             ktClassOrObject.hasModifier(KtTokens.PROTECTED_KEYWORD) -> protectedVisibility()
-
             ktClassOrObject.hasModifier(KtTokens.INTERNAL_KEYWORD) -> internalVisibility()
-
             ktClassOrObject.hasModifier(KtTokens.PRIVATE_KEYWORD) -> privateVisibility()
-
             else -> publicVisibility()
         }
     )
@@ -101,7 +100,7 @@ private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
 
     if (ktClassOrObject.hasModifier(KtTokens.INNER_KEYWORD)) {
         irClassBuilder.addLanguageProperty(
-            KtTokens.OPEN_KEYWORD.value, true
+            KtTokens.INNER_KEYWORD.value, true
         )
     }
 
@@ -126,6 +125,26 @@ private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
     }
 
     interfaces.forEach { superInterface -> irClassBuilder.addSuperClass(superInterface) }
+
+    val constructorFields = ktClassOrObject
+        .primaryConstructorParameters
+        .filter { it.hasValOrVar() }
+
+    convertFieldsAsParameters(
+        ktClassOrObject = ktClassOrObject,
+        fields = constructorFields,
+        irClassBuilder = irClassBuilder,
+    )
+
+    val bodyFields = ktClassOrObject.declarations.filterIsInstance<KtProperty>()
+
+    convertFieldsAsProperties(
+        ktClassOrObject = ktClassOrObject,
+        fields = bodyFields,
+        irClassBuilder = irClassBuilder,
+    )
+
+    ktClassOrObject.declarations.filterIsInstance<KtFunction>()
 
     ktClassOrObject.declarations.filterIsInstance<KtClassOrObject>().forEach { nestedClass ->
         irClassBuilder.addNestedClass(convertClass(nestedClass))
@@ -161,7 +180,7 @@ private fun createSuperClassFromSuper(
     val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
     val superAsType = ktClassOrObject.superTypeListEntries
         .mapNotNull { superTypeListEntry -> superTypeListEntry.typeReference?.typeElement }
-        .mapNotNull { superTypeElement -> convertType(superTypeElement, preloadedTypeParameters) as? IrTypeReference }
+        .mapNotNull { superTypeElement -> convertKtTypeElement(superTypeElement, preloadedTypeParameters) as? IrTypeReference }
         .find { superTypeReference -> superTypeReference.referencedClassName == superClass.name }
         ?: throw IllegalArgumentException("Unable to find superclass in ktClassOrObject by name")
 

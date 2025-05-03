@@ -38,7 +38,7 @@ private fun convertTypeParameter(
     val irTypeParameter = irTypeParameter(name)
 
     val directBound = ktTypeParameter.extendsBound?.typeElement?.let { directBoundType ->
-        convertType(directBoundType, preloadedTypeParameters)
+        convertKtTypeElement(directBoundType, preloadedTypeParameters)
     }
 
     val whereBounds = (ktClassOrObject as? KtTypeParameterListOwner)
@@ -46,7 +46,7 @@ private fun convertTypeParameter(
         ?.filter { it.subjectTypeParameterName?.text == name }
         ?.mapNotNull {
             it.boundTypeReference?.typeElement?.let { bound ->
-                convertType(bound, preloadedTypeParameters)
+                convertKtTypeElement(bound, preloadedTypeParameters)
             }
         }
         .orEmpty()

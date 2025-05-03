@@ -33,27 +33,4 @@ object GlobalFileUtils {
             return fileContents.toString()
         }
     }
-
-    fun loadKtFilesFromSourceRoot(sourceRoot: File): List<KtFile> {
-        require(sourceRoot.isDirectory) {
-            "Path ${sourceRoot.absolutePath} is not a directory"
-        }
-
-        val result = mutableListOf<KtFile>()
-
-        sourceRoot.walkTopDown()
-            .filter { it.isFile && it.extension == "kt" }
-            .forEach { ktFileOnDisk ->
-                try {
-                    val code     = ktFileOnDisk.asString()
-                    val relPath  = sourceRoot.toPath().relativize(ktFileOnDisk.toPath()).toString()
-                    val psiFile  = parseKotlinFile(code, relPath)
-                    result += psiFile
-                } catch (io: IOException) {
-                    System.err.println("Could not read ${ktFileOnDisk.path}: ${io.message}")
-                }
-            }
-
-        return result
-    }
 }

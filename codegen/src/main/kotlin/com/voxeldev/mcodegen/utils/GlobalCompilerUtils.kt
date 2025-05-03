@@ -1,6 +1,7 @@
 package com.voxeldev.mcodegen.utils
 
-import com.voxeldev.mcodegen.utils.GlobalFileUtils.loadKtFilesFromSourceRoot
+import com.voxeldev.mcodegen.utils.GlobalFileUtils.asString
+import com.voxeldev.mcodegen.utils.GlobalFileUtils.parseKotlinFile
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
@@ -16,6 +17,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.psi.KtFile
 import java.io.File
+import java.io.IOException
 
 object GlobalCompilerUtils {
 
@@ -24,6 +26,8 @@ object GlobalCompilerUtils {
     //  but increases analysis time (depending on the amount of provided source roots files).
     // Any directory with .kt source files can be added as a source root, for example, sources of a used library.
     private val ktSourceRoots = mutableListOf<File>()
+
+    private val ktSourceRootsFiles = hashMapOf<File, List<KtFile>>()
 
     private val compilerConfiguration = CompilerConfiguration().apply {
         put(
@@ -63,11 +67,9 @@ object GlobalCompilerUtils {
     }
 
     fun getAnalysisResult(vararg files: KtFile): AnalysisResult {
-        val sourceRootsKtFiles = ktSourceRoots.flatMap { sourceRoot -> loadKtFilesFromSourceRoot(sourceRoot) }
-
         return TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
             project = project,
-            files = sourceRootsKtFiles + files.toList(),
+            files = getSourceRootsKtFiles() + files.toList(),
             trace = CliBindingTrace(),
             configuration = compilerConfiguration,
             packagePartProvider = { scope ->
@@ -85,5 +87,39 @@ object GlobalCompilerUtils {
 
     fun removeKtSourceRoot(ktSourceRoot: File) {
         ktSourceRoots.remove(ktSourceRoot)
+    }
+
+    private fun getSourceRootsKtFiles(): List<KtFile> {
+        loadMissingKtFilesFromSourceRoot()
+        return ktSourceRootsFiles.flatMap { it.value }
+    }
+
+    private fun loadMissingKtFilesFromSourceRoot() {
+        ktSourceRoots
+            .filter { sourceRoot -> sourceRoot !in ktSourceRootsFiles }
+            .forEach { sourceRoot -> ktSourceRootsFiles[sourceRoot] = loadKtFilesFromSourceRoot(sourceRoot) }
+    }
+
+    private fun loadKtFilesFromSourceRoot(sourceRoot: File): List<KtFile> {
+        require(sourceRoot.isDirectory) {
+            "Path ${sourceRoot.absolutePath} is not a directory"
+        }
+
+        val result = mutableListOf<KtFile>()
+
+        sourceRoot.walkTopDown()
+            .filter { it.isFile && it.extension == "kt" }
+            .forEach { ktFileOnDisk ->
+                try {
+                    val code = ktFileOnDisk.asString()
+                    val relPath = sourceRoot.toPath().relativize(ktFileOnDisk.toPath()).toString()
+                    val psiFile = parseKotlinFile(code, relPath)
+                    result += psiFile
+                } catch (io: IOException) {
+                    System.err.println("Could not read ${ktFileOnDisk.path}: ${io.message}")
+                }
+            }
+
+        return result
     }
 }

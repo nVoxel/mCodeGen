@@ -1,7 +1,6 @@
 package com.voxeldev.mcodegen.dsl.language.java.source.generate.extensions
 
 import com.squareup.javapoet.ClassName
-import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeSpec
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrAnnotationClassKind
