@@ -13,7 +13,7 @@ internal fun convertImports(psiImports: PsiImportList, irFileBuilder: IrFileBuil
         irFileBuilder.addImport(
             import = irImport(
                 path = path,
-                isWildcard = path.endsWith('*')
+                isWildcard = importStatement.isOnDemand,
             ).build()
         )
     }

@@ -2,6 +2,8 @@ package com.voxeldev.mcodegen.scenarios.tdCommon
 
 import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
+import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
+import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import com.voxeldev.mcodegen.dsl.scenario.baseScenario
 import com.voxeldev.mcodegen.dsl.scenario.configuration.baseScenarioConfiguration
 import com.voxeldev.mcodegen.dsl.scenario.manager.baseScenarioManager
@@ -20,28 +22,11 @@ fun main() {
         name = "TDLib scenario",
         configuration = tdLibScenarioConfguration,
     ) {
-        val androidSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiAndroid.java")
-        val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiDesktop.java")
+        // val androidSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiAndroid.java")
+        // val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiDesktop.java")
 
-        // for test
-        val testInitializersIR : IrFile = JavaModule.parse(sourcePath = "test_java_initializers.java")
-        JavaModule.generate(testInitializersIR, "test", listOf())
-
-        // for test
-        val testExpressionsIR : IrFile = JavaModule.parse(sourcePath = "test_java_expressions.java")
-        JavaModule.generate(testExpressionsIR, "test", listOf())
-
-        // for test
-        val testAnnotationsIR : IrFile = JavaModule.parse(sourcePath = "test_java_annotations.java")
-        JavaModule.generate(testAnnotationsIR, "test", listOf())
-
-        // for test
-        val testStatementsIR : IrFile = JavaModule.parse(sourcePath = "test_java_statements.java")
-        JavaModule.generate(testStatementsIR, "test", listOf())
-
-        // for test
-        val testGenericsIR : IrFile = JavaModule.parse(sourcePath = "test_java_generic.java")
-        JavaModule.generate(testGenericsIR, "test", listOf())
+        runJavaTests()
+        runKotlinTests()
 
         // val iosSourceIR : IR = SwiftModule.parse(sourcePath = "path/to/ios/source/file.swift")
 
@@ -100,6 +85,56 @@ fun main() {
     }
 
     scenarioManager.runConfiguration(configuration)
+}
+
+context(ScenarioScope)
+private fun runJavaTests() {
+    // for test
+    val testInitializersIR : IrFile = JavaModule.parse(sourcePath = "test_java_initializers.java")
+    JavaModule.generate(testInitializersIR, "test", listOf())
+
+    // for test
+    val testExpressionsIR : IrFile = JavaModule.parse(sourcePath = "test_java_expressions.java")
+    JavaModule.generate(testExpressionsIR, "test", listOf())
+
+    // for test
+    val testAnnotationsIR : IrFile = JavaModule.parse(sourcePath = "test_java_annotations.java")
+    JavaModule.generate(testAnnotationsIR, "test", listOf())
+
+    // for test
+    val testStatementsIR : IrFile = JavaModule.parse(sourcePath = "test_java_statements.java")
+    JavaModule.generate(testStatementsIR, "test", listOf())
+
+    // for test
+    val testGenericsIR : IrFile = JavaModule.parse(sourcePath = "test_java_generic.java")
+    JavaModule.generate(testGenericsIR, "test", listOf())
+}
+
+context(ScenarioScope)
+private fun runKotlinTests() {
+    // for test
+    val testInheritanceIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_inheritance.kt")
+    //JavaModule.generate(testInheritanceIR, "test", listOf())
+
+    // for test
+    val testInitializersIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_initializers.kt")
+    //JavaModule.generate(testInitializersIR, "test", listOf())
+
+    // for test
+    val testExpressionsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_expressions.kt")
+    //JavaModule.generate(testExpressionsIR, "test", listOf())
+
+    // for test
+    val testAnnotationsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_annotations.kt")
+    //JavaModule.generate(testAnnotationsIR, "test", listOf())
+
+    // for test
+    val testStatementsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_statements.kt")
+    //JavaModule.generate(testStatementsIR, "test", listOf())
+
+    // for test
+    val testGenericsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_generic.kt")
+    //JavaModule.generate(testGenericsIR, "test", listOf())
 }
 
 /*

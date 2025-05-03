@@ -3,7 +3,7 @@ package com.voxeldev.mcodegen.dsl.language.java.source.generate.extensions
 import com.squareup.javapoet.FieldSpec
 import com.squareup.javapoet.TypeSpec
 import com.voxeldev.mcodegen.dsl.ir.IrClass
-import com.voxeldev.mcodegen.dsl.ir.IrClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrInterfaceClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrField
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
@@ -30,7 +30,7 @@ private fun convertField(
     irField: IrField,
 ): FieldSpec {
     return FieldSpec.builder(convertType(irField.type), irField.name).apply {
-        if (irClass.kind != IrClassKind.INTERFACE) {
+        if (irClass.kind != IrInterfaceClassKind) {
             when (irField.visibility) {
                 is IrVisibilityPublic -> addModifiers(Modifier.PUBLIC)
                 is IrVisibilityProtected -> addModifiers(Modifier.PROTECTED)

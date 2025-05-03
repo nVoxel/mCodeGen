@@ -4,10 +4,12 @@ import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrClassInitializer
 import com.voxeldev.mcodegen.dsl.ir.IrClassInitializer.IrClassInitializerKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrClassClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrField
 import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.IrMethodBody
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
+import com.voxeldev.mcodegen.dsl.ir.IrSuperClass
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypeParameter
 import com.voxeldev.mcodegen.dsl.ir.IrVisibility
@@ -23,10 +25,10 @@ fun irClass(name: String): IrClassBuilder = IrClassBuilder(name)
  * Provides a fluent API for constructing class definitions with default values.
  */
 class IrClassBuilder internal constructor(private val name: String) : IrElementBuilder() {
-    private var kind: IrClassKind = IrClassKind.CLASS
+    private var kind: IrClassKind = IrClassClassKind
     private var visibility: IrVisibility? = null
     private var typeParameters: MutableList<IrTypeParameter> = mutableListOf()
-    private var superClasses: MutableList<IrClass> = mutableListOf()
+    private var superClasses: MutableList<IrSuperClass> = mutableListOf()
     private var fields: MutableList<IrField> = mutableListOf()
     private var methods: MutableList<IrMethod> = mutableListOf()
     private var initializers: MutableList<IrClassInitializer> = mutableListOf()
@@ -44,7 +46,7 @@ class IrClassBuilder internal constructor(private val name: String) : IrElementB
         typeParameters.add(typeParameter)
     }
 
-    fun addSuperClass(superClass: IrClass) {
+    fun addSuperClass(superClass: IrSuperClass) {
         superClasses.add(superClass)
     }
 
@@ -75,6 +77,28 @@ class IrClassBuilder internal constructor(private val name: String) : IrElementB
             methods = methods,
             initializers = initializers,
             nestedClasses = nestedClasses,
+            location = location,
+            annotations = annotations,
+            languageProperties = languageProperties
+        )
+    }
+}
+
+fun irSuperClass(superClass: IrClass): IrSuperClassBuilder = IrSuperClassBuilder(superClass)
+
+class IrSuperClassBuilder internal constructor(
+    private val superClass: IrClass
+) : IrElementBuilder() {
+    private var types: MutableList<IrType> = mutableListOf()
+
+    fun addType(type: IrType) {
+        this.types.add(type)
+    }
+
+    fun build(): IrSuperClass {
+        return IrSuperClass(
+            superClass = superClass,
+            types = types,
             location = location,
             annotations = annotations,
             languageProperties = languageProperties

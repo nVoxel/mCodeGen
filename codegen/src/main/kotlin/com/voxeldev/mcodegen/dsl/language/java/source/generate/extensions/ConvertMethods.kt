@@ -5,7 +5,7 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeSpec
 import com.voxeldev.mcodegen.dsl.ir.IrClass
-import com.voxeldev.mcodegen.dsl.ir.IrClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrInterfaceClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
@@ -42,7 +42,7 @@ private fun convertMethod(
     }
 
     poetMethod.apply {
-        if (irClass.kind != IrClassKind.INTERFACE) {
+        if (irClass.kind != IrInterfaceClassKind) {
             when (irMethod.visibility) {
                 is IrVisibilityPublic -> addModifiers(Modifier.PUBLIC)
                 is IrVisibilityProtected -> addModifiers(Modifier.PROTECTED)

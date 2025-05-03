@@ -1,9 +1,13 @@
 package com.voxeldev.mcodegen.dsl.language.java.source.generate.extensions
 
 import com.squareup.javapoet.ClassName
+import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeSpec
 import com.voxeldev.mcodegen.dsl.ir.IrClass
-import com.voxeldev.mcodegen.dsl.ir.IrClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrAnnotationClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrClassClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrEnumClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrInterfaceClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
@@ -17,10 +21,11 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
     val name = irClass.languageProperties["simpleName"] as? String ?: irClass.name
 
     val poetClassBuilder = when (irClass.kind) {
-        IrClassKind.CLASS -> TypeSpec.classBuilder(name)
-        IrClassKind.INTERFACE -> TypeSpec.interfaceBuilder(name)
-        IrClassKind.ENUM -> TypeSpec.enumBuilder(name)
-        IrClassKind.ANNOTATION -> TypeSpec.annotationBuilder(name)
+        IrClassClassKind -> TypeSpec.classBuilder(name)
+        IrInterfaceClassKind -> TypeSpec.interfaceBuilder(name)
+        IrEnumClassKind -> TypeSpec.enumBuilder(name)
+        IrAnnotationClassKind -> TypeSpec.annotationBuilder(name)
+        else -> throw IllegalArgumentException("Unsupported class kind : ${irClass.kind}")
     }.apply {
         when (irClass.visibility) {
             is IrVisibilityPublic -> addModifiers(Modifier.PUBLIC)
@@ -28,7 +33,7 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
             is IrVisibilityPrivate -> addModifiers(Modifier.PRIVATE)
         }
 
-        if (irClass.kind != IrClassKind.INTERFACE && irClass.kind != IrClassKind.ANNOTATION) {
+        if (irClass.kind != IrInterfaceClassKind && irClass.kind != IrAnnotationClassKind) {
             if (irClass.languageProperties[PsiModifier.ABSTRACT] == true) {
                 addModifiers(Modifier.ABSTRACT)
             }
@@ -50,7 +55,7 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
             addTypeVariable(convertTypeParameter(irTypeParameter))
         }
 
-        val extends = irClass.superClasses.filter { it.kind == IrClassKind.CLASS }.run {
+        val extends = irClass.superClasses.filter { it.superClass.kind == IrClassClassKind }.run {
             if (size > 1) {
                 throw IllegalStateException("Java currently does not support more than one superclass")
             }
@@ -59,13 +64,15 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
         }
 
         extends?.let {
-            superclass(ClassName.bestGuess(extends.name))
+            // TODO: support inheritance cases with types like List<T> using ParameterizedTypeName
+            superclass(ClassName.bestGuess(extends.superClass.name))
         }
 
-        val implements = irClass.superClasses.filter { it.kind == IrClassKind.INTERFACE }
+        val implements = irClass.superClasses.filter { it.superClass.kind == IrInterfaceClassKind }
 
         implements.forEach { implementedInterface ->
-            addSuperinterface(ClassName.bestGuess(implementedInterface.name))
+            // TODO: support inheritance cases with types like List<T> using ParameterizedTypeName
+            addSuperinterface(ClassName.bestGuess(implementedInterface.superClass.name))
         }
 
         convertFields(irClass, irClass.fields, this)

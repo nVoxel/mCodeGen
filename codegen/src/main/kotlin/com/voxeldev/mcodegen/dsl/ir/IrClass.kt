@@ -5,12 +5,12 @@ package com.voxeldev.mcodegen.dsl.ir
  * This class contains all the necessary information to generate a class definition,
  * including its name, visibility, methods, and other properties.
  */
-data class IrClass(
+open class IrClass(
     val name: String,
     val kind: IrClassKind,
     val visibility: IrVisibility,
     val typeParameters: List<IrTypeParameter>,
-    val superClasses: List<IrClass>,
+    val superClasses: List<IrSuperClass>,
     val fields: List<IrField>,
     val methods: List<IrMethod>,
     val initializers: List<IrClassInitializer>,
@@ -20,9 +20,20 @@ data class IrClass(
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrElement
 
-enum class IrClassKind {
-    CLASS, INTERFACE, ENUM, ANNOTATION
+interface IrClassKind {
+    data object IrClassClassKind : IrClassKind
+    data object IrInterfaceClassKind : IrClassKind
+    data object IrEnumClassKind : IrClassKind
+    data object IrAnnotationClassKind : IrClassKind
 }
+
+data class IrSuperClass(
+    val superClass: IrClass,
+    val types: List<IrType>,
+    override val location: IrLocation? = null,
+    override val annotations: List<IrAnnotation> = emptyList(),
+    override val languageProperties: Map<String, Any> = emptyMap()
+) : IrElement
 
 data class IrField(
     val name: String,

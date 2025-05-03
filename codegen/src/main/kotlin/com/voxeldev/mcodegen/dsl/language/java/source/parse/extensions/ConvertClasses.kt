@@ -1,9 +1,13 @@
 package com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions
 
 import com.voxeldev.mcodegen.dsl.ir.IrClass
-import com.voxeldev.mcodegen.dsl.ir.IrClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrAnnotationClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrClassClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrEnumClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrInterfaceClassKind
 import com.voxeldev.mcodegen.dsl.ir.builders.IrFileBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irClass
+import com.voxeldev.mcodegen.dsl.ir.builders.irSuperClass
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.language.java.ir.packagePrivateVisibility
 import com.voxeldev.mcodegen.dsl.language.java.ir.privateVisibility
@@ -30,10 +34,10 @@ private fun convertClass(psiClass: PsiClass): IrClass {
 
     irClassBuilder.kind(
         when {
-            psiClass.isAnnotationType -> IrClassKind.ANNOTATION
-            psiClass.isEnum -> IrClassKind.ENUM
-            psiClass.isInterface -> IrClassKind.INTERFACE
-            else -> IrClassKind.CLASS
+            psiClass.isAnnotationType -> IrAnnotationClassKind
+            psiClass.isEnum -> IrEnumClassKind
+            psiClass.isInterface -> IrInterfaceClassKind
+            else -> IrClassClassKind
         }
     )
 
@@ -54,11 +58,13 @@ private fun convertClass(psiClass: PsiClass): IrClass {
             PsiModifier.ABSTRACT, true
         )
     }
+
     if (psiClass.hasModifierProperty(PsiModifier.FINAL)) {
         irClassBuilder.addLanguageProperty(
             PsiModifier.FINAL, true
         )
     }
+
     if (psiClass.hasModifierProperty(PsiModifier.STATIC)) {
         irClassBuilder.addLanguageProperty(
             PsiModifier.STATIC, true
@@ -76,11 +82,19 @@ private fun convertClass(psiClass: PsiClass): IrClass {
     // Convert superclass and interfaces
     psiClass.extendsList?.referencedTypes?.forEach { type ->
         val resolvedClass = type.resolve() ?: return@forEach
-        irClassBuilder.addSuperClass(convertClass(resolvedClass))
+        irClassBuilder.addSuperClass(
+            irSuperClass(convertClass(resolvedClass)).apply {
+                // TODO: support inheritance cases with types like List<T>
+            }.build()
+        )
     }
     psiClass.implementsList?.referencedTypes?.forEach { type ->
         val resolvedInterface = type.resolve() ?: return@forEach
-        irClassBuilder.addSuperClass(convertClass(resolvedInterface))
+        irClassBuilder.addSuperClass(
+            irSuperClass(convertClass(resolvedInterface)).apply {
+                // TODO: support inheritance cases with types like List<T>
+            }.build()
+        )
     }
 
     // Convert fields
@@ -93,8 +107,8 @@ private fun convertClass(psiClass: PsiClass): IrClass {
     convertInitializers(psiClass.initializers, irClassBuilder)
 
     // Convert nested classes
-    psiClass.innerClasses.forEach { innerClass ->
-        irClassBuilder.addNestedClass(convertClass(innerClass))
+    psiClass.innerClasses.forEach { nestedClass ->
+        irClassBuilder.addNestedClass(convertClass(nestedClass))
     }
 
     return irClassBuilder.build()

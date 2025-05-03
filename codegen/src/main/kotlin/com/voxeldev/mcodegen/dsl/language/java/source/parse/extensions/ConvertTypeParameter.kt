@@ -22,7 +22,7 @@ internal fun convertTypeParameter(psiTypeParameter: PsiTypeParameter): IrTypePar
                 )
             }
 
-            else -> {
+            else -> { // TODO: cases like <T : List<String>> are probably unsupported
                 val referencedClassName = referencedClass.qualifiedName ?: return@forEach
                 irTypeParameter.addExtendsType(
                     extendsType = irTypeReference(referencedClassName).apply {
