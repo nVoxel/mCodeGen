@@ -11,6 +11,23 @@ open class IrExpression(
 ) : IrElement
 
 /**
+ * Represents an empty expression, nothing. Can be used as a fallback.
+ * If met during statement construction, the statement becomes [IrEmptyStatement] as well.
+ * @see IrExpressionUnknown
+ */
+data class IrEmptyExpression(
+    override val stringRepresentation: List<IrStringRepresentation>,
+    override val location: IrLocation?,
+    override val annotations: List<IrAnnotation>,
+    override val languageProperties: Map<String, Any>,
+) : IrExpression(
+    stringRepresentation = stringRepresentation,
+    location = location,
+    annotations = annotations,
+    languageProperties = languageProperties,
+)
+
+/**
  * Represents an integer, float, string, boolean, char, etc.
  */
 data class IrLiteralExpression(
@@ -28,11 +45,12 @@ data class IrLiteralExpression(
 
 /**
  * An identifier referencing a variable, parameter, constant, etc.
- * Must not reference any type that should be dynamically imported.
+ * Must reference any type that should NOT be dynamically imported.
  * e.g., `myVariable` or `System` or `MyClass`
  */
 data class IrIdentifierExpression(
-    val expression: String,
+    val qualifier: IrExpression?, // right part
+    val selector: IrExpression, // left part
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -50,8 +68,7 @@ data class IrIdentifierExpression(
  * e.g., `myVariable` or `System` or `MyClass`
  */
 data class IrTypeReferenceIdentifierExpression(
-    val referencedType: IrType,
-    val expression: String?,
+    val referencedType: IrType, // selector, left part
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -256,6 +273,21 @@ data class IrCastExpression(
 data class IrTypeCheckExpression(
     val expression: IrExpression,
     val checkType: IrType,
+    override val stringRepresentation: List<IrStringRepresentation>,
+    override val location: IrLocation?,
+    override val annotations: List<IrAnnotation>,
+    override val languageProperties: Map<String, Any>,
+) : IrExpression(
+    stringRepresentation = stringRepresentation,
+    location = location,
+    annotations = annotations,
+    languageProperties = languageProperties,
+)
+
+/**
+ * Fallback when the frontend was unable to convert an expression.
+ */
+data class IrExpressionUnknown(
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,

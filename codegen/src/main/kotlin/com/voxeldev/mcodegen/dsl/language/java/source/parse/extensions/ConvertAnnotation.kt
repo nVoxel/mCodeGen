@@ -5,8 +5,8 @@ import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.builders.irAnnotation
 import com.voxeldev.mcodegen.dsl.ir.builders.irAnnotationParameter
+import com.voxeldev.mcodegen.dsl.ir.builders.irExpressionUnknown
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.ir.builders.irExpressionUnknown
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiAnnotation
 import org.jetbrains.kotlin.com.intellij.psi.PsiAnnotationMemberValue

@@ -5,7 +5,7 @@ package com.voxeldev.mcodegen.dsl.ir
  * This class contains all the necessary information to generate a method definition,
  * including its name, return type, parameters, visibility, and body statements.
  */
-data class IrMethod(
+open class IrMethod(
     val name: String,
     val returnType: IrType,
     val parameters: List<IrParameter>,
@@ -15,11 +15,44 @@ data class IrMethod(
     val isAbstract: Boolean,
     val isStatic: Boolean,
     val isOverride: Boolean,
-    val isConstructor: Boolean,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrElement
+
+/**
+ * Represents a class constructor in the IR (Intermediate Representation) system.
+ * This class contains all the necessary information to generate a constructor,
+ * including parameters, visibility, body statements and other constructor call.
+ */
+open class IrConstructor(
+    val otherConstructorCall: IrMethodCallExpression?,
+    name: String,
+    returnType: IrType,
+    parameters: List<IrParameter>,
+    typeParameters: List<IrTypeParameter>,
+    body: IrMethodBody?,
+    visibility: IrVisibility,
+    isAbstract: Boolean,
+    isStatic: Boolean,
+    isOverride: Boolean,
+    location: IrLocation? = null,
+    annotations: List<IrAnnotation> = emptyList(),
+    languageProperties: Map<String, Any> = emptyMap()
+) : IrMethod(
+    name = name,
+    returnType = returnType,
+    parameters = parameters,
+    typeParameters = typeParameters,
+    body = body,
+    visibility = visibility,
+    isAbstract = isAbstract,
+    isStatic = isStatic,
+    isOverride = isOverride,
+    location = location,
+    annotations = annotations,
+    languageProperties = languageProperties,
+)
 
 /**
  * Represents a method parameter in the IR (Intermediate Representation) system.

@@ -4,7 +4,9 @@ import com.voxeldev.mcodegen.dsl.ir.IrAnnotation
 import com.voxeldev.mcodegen.dsl.ir.IrAssignmentExpression
 import com.voxeldev.mcodegen.dsl.ir.IrBinaryExpression
 import com.voxeldev.mcodegen.dsl.ir.IrCastExpression
+import com.voxeldev.mcodegen.dsl.ir.IrEmptyExpression
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
+import com.voxeldev.mcodegen.dsl.ir.IrExpressionUnknown
 import com.voxeldev.mcodegen.dsl.ir.IrIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrLiteralExpression
 import com.voxeldev.mcodegen.dsl.ir.IrLocation
@@ -47,6 +49,26 @@ abstract class IrExpressionBuilder : IrElementBuilder() {
 }
 
 /**
+ * Creates a new [IrEmptyExpressionBuilder] instance with the given value.
+ */
+fun irEmptyExpression(): IrEmptyExpressionBuilder = IrEmptyExpressionBuilder()
+
+/**
+ * Builder class for creating [IrEmptyExpression] instances.
+ */
+class IrEmptyExpressionBuilder() : IrExpressionBuilder() {
+    fun build(): IrEmptyExpression {
+        val properties = buildExpressionProperties()
+        return IrEmptyExpression(
+            stringRepresentation = properties.stringRepresentation,
+            location = properties.location,
+            annotations = properties.annotations,
+            languageProperties = properties.languageProperties,
+        )
+    }
+}
+
+/**
  * Creates a new [IrLiteralExpressionBuilder] instance with the given value.
  */
 fun irLiteralExpression(value: String): IrLiteralExpressionBuilder = IrLiteralExpressionBuilder(value)
@@ -70,17 +92,24 @@ class IrLiteralExpressionBuilder(private val value: String) : IrExpressionBuilde
 /**
  * Creates a new [IrIdentifierExpressionBuilder] instance with the given name.
  */
-fun irIdentifierExpression(expression: String): IrIdentifierExpressionBuilder =
-    IrIdentifierExpressionBuilder(expression)
+fun irIdentifierExpression(selector: IrExpression): IrIdentifierExpressionBuilder =
+    IrIdentifierExpressionBuilder(selector)
 
 /**
  * Builder class for creating [IrIdentifierExpression] instances.
  */
-class IrIdentifierExpressionBuilder(private val expression: String) : IrExpressionBuilder() {
+class IrIdentifierExpressionBuilder(private val selector: IrExpression) : IrExpressionBuilder() {
+    private var qualifier: IrExpression? = null
+
+    fun qualifier(expression: IrExpression) {
+        qualifier = expression
+    }
+
     fun build(): IrIdentifierExpression {
         val properties = buildExpressionProperties()
         return IrIdentifierExpression(
-            expression = expression,
+            qualifier = qualifier,
+            selector = selector,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,
@@ -101,17 +130,10 @@ fun irTypeReferenceIdentifierExpression(referencedType: IrType): IrTypeReference
 class IrTypeReferenceIdentifierExpressionBuilder(
     private val referencedType: IrType,
 ) : IrExpressionBuilder() {
-    private var expression: String? = null
-
-    fun expression(expression: String) {
-        this.expression = expression
-    }
-
     fun build(): IrTypeReferenceIdentifierExpression {
         val properties = buildExpressionProperties()
         return IrTypeReferenceIdentifierExpression(
             referencedType = referencedType,
-            expression = expression,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,
@@ -419,6 +441,26 @@ class IrTypeCheckExpressionBuilder(
         return IrTypeCheckExpression(
             expression = expression,
             checkType = checkType,
+            stringRepresentation = properties.stringRepresentation,
+            location = properties.location,
+            annotations = properties.annotations,
+            languageProperties = properties.languageProperties,
+        )
+    }
+}
+
+/**
+ * Creates a new [IrExpressionUnknownBuilder] instance.
+ */
+fun irExpressionUnknown(): IrExpressionUnknownBuilder = IrExpressionUnknownBuilder()
+
+/**
+ * Builder class for creating [IrExpressionUnknown] instances.
+ */
+class IrExpressionUnknownBuilder : IrExpressionBuilder() {
+    fun build(): IrExpressionUnknown {
+        val properties = buildExpressionProperties()
+        return IrExpressionUnknown(
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
             annotations = properties.annotations,

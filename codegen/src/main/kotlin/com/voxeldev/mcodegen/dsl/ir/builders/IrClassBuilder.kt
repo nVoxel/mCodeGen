@@ -84,10 +84,14 @@ class IrClassBuilder internal constructor(private val name: String) : IrElementB
     }
 }
 
-fun irSuperClass(superClass: IrClass): IrSuperClassBuilder = IrSuperClassBuilder(superClass)
+fun irSuperClass(
+    superClassName: String,
+    kind: IrClassKind,
+): IrSuperClassBuilder = IrSuperClassBuilder(superClassName, kind)
 
 class IrSuperClassBuilder internal constructor(
-    private val superClass: IrClass
+    private val superClassName: String,
+    private val kind: IrClassKind,
 ) : IrElementBuilder() {
     private var types: MutableList<IrType> = mutableListOf()
 
@@ -97,7 +101,8 @@ class IrSuperClassBuilder internal constructor(
 
     fun build(): IrSuperClass {
         return IrSuperClass(
-            superClass = superClass,
+            superClassName = superClassName,
+            kind = kind,
             types = types,
             location = location,
             annotations = annotations,

@@ -5,6 +5,9 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irImport
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiImportList
+import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
+
+const val STATIC_IMPORT_REFERENCE = "staticImportReference"
 
 context(JavaModule, ScenarioScope)
 internal fun convertImports(psiImports: PsiImportList, irFileBuilder: IrFileBuilder) {
@@ -15,6 +18,21 @@ internal fun convertImports(psiImports: PsiImportList, irFileBuilder: IrFileBuil
                 path = path,
                 isWildcard = importStatement.isOnDemand,
             ).build()
+        )
+    }
+
+    psiImports.importStaticStatements.forEach { importStaticStatement ->
+        val path = importStaticStatement.resolveTargetClass()?.qualifiedName ?: return@forEach
+        val referenceName = importStaticStatement.referenceName ?: return@forEach
+
+        irFileBuilder.addImport(
+            import = irImport(
+                path = path,
+                isWildcard = importStaticStatement.isOnDemand,
+            ).apply {
+                addLanguageProperty(PsiModifier.STATIC, true)
+                addLanguageProperty(STATIC_IMPORT_REFERENCE, referenceName)
+            }.build()
         )
     }
 }

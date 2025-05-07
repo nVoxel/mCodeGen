@@ -83,7 +83,10 @@ private fun convertClass(psiClass: PsiClass): IrClass {
     psiClass.extendsList?.referencedTypes?.forEach { type ->
         val resolvedClass = type.resolve() ?: return@forEach
         irClassBuilder.addSuperClass(
-            irSuperClass(convertClass(resolvedClass)).apply {
+            irSuperClass(
+                superClassName = resolvedClass.qualifiedName ?: "Ir:UnnamedClass",
+                kind = if (resolvedClass.isInterface) IrInterfaceClassKind else IrClassClassKind,
+            ).apply {
                 // TODO: support inheritance cases with types like List<T>
             }.build()
         )
@@ -91,7 +94,10 @@ private fun convertClass(psiClass: PsiClass): IrClass {
     psiClass.implementsList?.referencedTypes?.forEach { type ->
         val resolvedInterface = type.resolve() ?: return@forEach
         irClassBuilder.addSuperClass(
-            irSuperClass(convertClass(resolvedInterface)).apply {
+            irSuperClass(
+                superClassName = resolvedInterface.qualifiedName ?: "Ir:UnnamedClass",
+                kind = if (resolvedInterface.isInterface) IrInterfaceClassKind else IrClassClassKind,
+            ).apply {
                 // TODO: support inheritance cases with types like List<T>
             }.build()
         )

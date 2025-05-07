@@ -11,6 +11,21 @@ open class IrStatement(
 ) : IrElement
 
 /**
+ * Represents an empty expression, nothing. Can be used as a fallback.
+ */
+data class IrEmptyStatement(
+    override val stringRepresentation: List<IrStringRepresentation>,
+    override val location: IrLocation?,
+    override val annotations: List<IrAnnotation>,
+    override val languageProperties: Map<String, Any>,
+) : IrStatement(
+    stringRepresentation = stringRepresentation,
+    location = location,
+    annotations = annotations,
+    languageProperties = languageProperties,
+)
+
+/**
  * A statement consisting solely of an expression, e.g. `myFunctionCall();`
  */
 data class IrExpressionStatement(
@@ -33,7 +48,7 @@ data class IrVariableDeclarationStatement(
     val name: String,
     val type: IrType,
     val additionalNames: List<String>,
-    val initializer: IrExpression?,
+    val initializer: IrStatement?,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
@@ -155,7 +170,7 @@ data class IrSwitchStatement(
      * A single case in a switch/when statement.
      */
     data class IrSwitchStatementCase(
-        val matchExpression: IrExpression?,
+        val matchExpressions: List<IrExpression>,
         val body: IrStatement?,
         override val stringRepresentation: List<IrStringRepresentation>,
         override val location: IrLocation?,
@@ -275,3 +290,18 @@ data class IrTryCatchStatement(
         languageProperties = languageProperties,
     )
 }
+
+/**
+ * Fallback when the frontend was unable to convert a statement.
+ */
+data class IrStatementUnknown(
+    override val stringRepresentation: List<IrStringRepresentation>,
+    override val location: IrLocation?,
+    override val annotations: List<IrAnnotation>,
+    override val languageProperties: Map<String, Any>,
+) : IrStatement(
+    stringRepresentation = stringRepresentation,
+    location = location,
+    annotations = annotations,
+    languageProperties = languageProperties,
+)

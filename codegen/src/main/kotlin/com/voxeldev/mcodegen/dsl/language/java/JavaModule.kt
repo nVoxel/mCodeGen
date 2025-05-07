@@ -1,11 +1,13 @@
 package com.voxeldev.mcodegen.dsl.language.java
 
+import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.JavaFile
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.ir.builders.irFile
 import com.voxeldev.mcodegen.dsl.language.base.LanguageModule
 import com.voxeldev.mcodegen.dsl.language.java.source.generate.extensions.convertClass
+import com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions.STATIC_IMPORT_REFERENCE
 import com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions.convertClasses
 import com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions.convertImports
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
@@ -13,6 +15,7 @@ import com.voxeldev.mcodegen.dsl.source.edit.scenario.EditScenario
 import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapper
 import com.voxeldev.mcodegen.utils.GlobalFileUtils
 import com.voxeldev.mcodegen.utils.GlobalFileUtils.asString
+import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
 import java.io.File
 import kotlin.io.path.Path
 
@@ -21,7 +24,7 @@ object JavaModule : LanguageModule {
     const val INDENT_PROPERTY_NAME = "indent"
     private const val INDENT_PROPERTY_DEFAULT_VALUE = "    "
 
-    internal const val PSI_CLASS = "psi_class"
+    const val PSI_CLASS = "psi_class"
 
     override val languageName: String = "java"
 
@@ -55,6 +58,16 @@ object JavaModule : LanguageModule {
         val filePackage = mappedSource.languageProperties["package"] as? String
             ?: throw IllegalStateException("Package not found for java IR")
 
+        val staticImports = mappedSource.imports.filter { import ->
+            import.languageProperties[PsiModifier.STATIC] == true
+                    && import.languageProperties[STATIC_IMPORT_REFERENCE] is String
+        }.map { import ->
+            Pair(
+                first = import.path,
+                second = if (import.isWildcard) "*" else import.languageProperties[STATIC_IMPORT_REFERENCE] as String
+            )
+        }
+
         val irClass = mappedSource.declarations.run {
             if (size > 1) {
                 throw IllegalStateException("Java file currently cannot have more than one class")
@@ -66,6 +79,10 @@ object JavaModule : LanguageModule {
         }
 
         val poetFileBuilder = JavaFile.builder(filePackage, convertClass(irClass))
+
+        staticImports.forEach { (className, referenceName) ->
+            poetFileBuilder.addStaticImport(ClassName.bestGuess(className), referenceName)
+        }
 
         val indentProperty = scenarioConfiguration.properties.find { property ->
             property.language == languageName && property.propertyName == INDENT_PROPERTY_NAME

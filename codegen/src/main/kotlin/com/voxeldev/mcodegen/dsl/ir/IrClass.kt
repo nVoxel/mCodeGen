@@ -28,7 +28,8 @@ interface IrClassKind {
 }
 
 data class IrSuperClass(
-    val superClass: IrClass,
+    val superClassName: String,
+    val kind: IrClassKind,
     val types: List<IrType>,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),

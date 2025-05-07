@@ -1,7 +1,9 @@
 package com.voxeldev.mcodegen.dsl.ir.builders
 
+import com.voxeldev.mcodegen.dsl.ir.IrConstructor
 import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.IrMethodBody
+import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.IrParameter
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
 import com.voxeldev.mcodegen.dsl.ir.IrType
@@ -22,7 +24,7 @@ fun irMethod(
 /**
  * Builder class for creating [IrMethod] instances.
  */
-class IrMethodBuilder(
+open class IrMethodBuilder(
     private val name: String,
     private val returnType: IrType,
 ) : IrElementBuilder() {
@@ -33,7 +35,6 @@ class IrMethodBuilder(
     private var isAbstract: Boolean = false
     private var isStatic: Boolean = false
     private var isOverride: Boolean = false
-    private var isConstructor: Boolean = false
 
     fun addParameter(parameter: IrParameter) {
         parameters.add(parameter)
@@ -63,11 +64,7 @@ class IrMethodBuilder(
         this.isOverride = isOverride
     }
 
-    fun isConstructor(isConstructor: Boolean) {
-        this.isConstructor = isConstructor
-    }
-
-    fun build(): IrMethod {
+    open fun build(): IrMethod {
         return IrMethod(
             name = name,
             returnType = returnType,
@@ -78,10 +75,53 @@ class IrMethodBuilder(
             isAbstract = isAbstract,
             isStatic = isStatic,
             isOverride = isOverride,
-            isConstructor = isConstructor,
             location = location,
             annotations = annotations,
             languageProperties = languageProperties,
+        )
+    }
+}
+
+/**
+ * Creates a new [IrMethodBuilder] instance with the given method name and return type.
+ */
+fun irConstructor(
+    name: String,
+    returnType: IrType,
+): IrConstructorBuilder = IrConstructorBuilder(
+    name = name,
+    returnType = returnType,
+)
+
+/**
+ * Builder class for creating [IrMethod] instances.
+ */
+class IrConstructorBuilder(
+    name: String,
+    returnType: IrType,
+) : IrMethodBuilder(name, returnType) {
+    private var otherConstructorCall: IrMethodCallExpression? = null
+
+    fun otherConstructorCall(callExpression: IrMethodCallExpression) {
+        otherConstructorCall = callExpression
+    }
+
+    override fun build(): IrConstructor {
+        val method = super.build()
+        return IrConstructor(
+            otherConstructorCall = otherConstructorCall,
+            name = method.name,
+            returnType = method.returnType,
+            parameters = method.parameters,
+            typeParameters = method.typeParameters,
+            body = method.body,
+            visibility = method.visibility,
+            isAbstract = method.isAbstract,
+            isStatic = method.isStatic,
+            isOverride = method.isOverride,
+            location = method.location,
+            annotations = method.annotations,
+            languageProperties = method.languageProperties,
         )
     }
 }

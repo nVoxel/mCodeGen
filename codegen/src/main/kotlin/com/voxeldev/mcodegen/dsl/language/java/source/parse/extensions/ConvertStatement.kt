@@ -1,15 +1,18 @@
 package com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions
 
+import com.voxeldev.mcodegen.dsl.ir.IrEmptyExpression
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
 import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.builders.irBlockStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irBreakStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irContinueStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irDoWhileStatement
+import com.voxeldev.mcodegen.dsl.ir.builders.irEmptyStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irExpressionStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irForStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irIfStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irReturnStatement
+import com.voxeldev.mcodegen.dsl.ir.builders.irStatementUnknown
 import com.voxeldev.mcodegen.dsl.ir.builders.irSwitchStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irSwitchStatementCase
 import com.voxeldev.mcodegen.dsl.ir.builders.irThrowStatement
@@ -18,7 +21,6 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irTryCatchStatementClause
 import com.voxeldev.mcodegen.dsl.ir.builders.irVariableDeclarationStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irWhileStatement
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.ir.builders.irStatementUnknown
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiBlockStatement
 import org.jetbrains.kotlin.com.intellij.psi.PsiBreakStatement
@@ -37,11 +39,26 @@ import org.jetbrains.kotlin.com.intellij.psi.PsiTryStatement
 import org.jetbrains.kotlin.com.intellij.psi.PsiVariable
 import org.jetbrains.kotlin.com.intellij.psi.PsiWhileStatement
 
+// TODO: need to rewrite this to handle IrEmptyExpression properly
 context(JavaModule, ScenarioScope)
-internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
+internal fun convertStatement(
+    psiStatement: PsiStatement,
+    ignoreConstructorCalls: Boolean = false,
+): IrStatement {
     return when (psiStatement) {
         is PsiExpressionStatement -> {
-            irExpressionStatement(expression = convertExpression(psiStatement.expression)).build()
+            val expression = convertExpression(
+                psiStatement.expression,
+                ignoreConstructorCalls
+            )
+
+            if (expression is IrEmptyExpression) {
+                irEmptyStatement().build()
+            } else {
+                irExpressionStatement(
+                    expression = expression
+                ).build()
+            }
         }
 
         is PsiDeclarationStatement -> {
@@ -61,7 +78,8 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
                 }
 
                 declaredVariables[0].initializer?.let { variableInitializer ->
-                    initializer(initializer = convertExpression(variableInitializer))
+                    val initializerExpression = convertExpression(variableInitializer, ignoreConstructorCalls)
+                    initializer(initializer = irExpressionStatement(expression = initializerExpression).build())
                 }
             }.build()
         }
@@ -69,18 +87,18 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
         is PsiBlockStatement -> {
             irBlockStatement().apply {
                 psiStatement.codeBlock.statements.forEach { innerStatement ->
-                    addStatement(convertStatement(psiStatement = innerStatement))
+                    addStatement(convertStatement(psiStatement = innerStatement, ignoreConstructorCalls))
                 }
             }.build()
         }
 
         is PsiIfStatement -> {
-            irIfStatement(condition = convertExpression(psiStatement.condition)).apply {
+            irIfStatement(condition = convertExpression(psiStatement.condition, ignoreConstructorCalls)).apply {
                 psiStatement.thenBranch?.let { thenBranch ->
-                    thenStatement(statement = convertStatement(thenBranch))
+                    thenStatement(statement = convertStatement(thenBranch, ignoreConstructorCalls))
                 }
                 psiStatement.elseBranch?.let { elseBranch ->
-                    elseStatement(statement = convertStatement(elseBranch))
+                    elseStatement(statement = convertStatement(elseBranch, ignoreConstructorCalls))
                 }
             }.build()
         }
@@ -88,66 +106,78 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
         is PsiForStatement -> {
             irForStatement().apply {
                 psiStatement.initialization?.let { initialization ->
-                    initializer(initializer = convertStatement(initialization))
+                    initializer(initializer = convertStatement(initialization, ignoreConstructorCalls))
                 }
 
                 psiStatement.condition?.let { condition ->
-                    condition(condition = convertExpression(condition))
+                    condition(condition = convertExpression(condition, ignoreConstructorCalls))
                 }
 
                 psiStatement.update?.let { update ->
-                    update(update = convertStatement(update))
+                    update(update = convertStatement(update, ignoreConstructorCalls))
                 }
 
                 psiStatement.body?.let { body ->
-                    body(statement = convertStatement(body))
+                    body(statement = convertStatement(body, ignoreConstructorCalls))
                 }
             }.build()
         }
 
         is PsiWhileStatement -> {
             irWhileStatement(
-                condition = convertExpression(psiStatement.condition),
+                condition = convertExpression(psiStatement.condition, ignoreConstructorCalls),
             ).apply {
                 psiStatement.body?.let { body ->
-                    body(statement = convertStatement(body))
+                    body(statement = convertStatement(body, ignoreConstructorCalls))
                 }
             }.build()
         }
 
         is PsiDoWhileStatement -> {
             irDoWhileStatement(
-                condition = convertExpression(psiStatement.condition),
+                condition = convertExpression(psiStatement.condition, ignoreConstructorCalls),
             ).apply {
                 psiStatement.body?.let { body ->
-                    body(statement = convertStatement(body))
+                    body(statement = convertStatement(body, ignoreConstructorCalls))
                 }
             }.build()
         }
 
         is PsiSwitchStatement -> {
             irSwitchStatement(
-                expression = convertExpression(psiStatement.expression)
+                expression = convertExpression(psiStatement.expression, ignoreConstructorCalls)
             ).apply {
                 psiStatement.body?.statements?.let { bodyStatements ->
                     val cases = bodyStatements.splitWhen { statement ->
                         statement is PsiSwitchLabelStatement
-                    }.filter { it.size > 1 }
+                    }
 
-                    cases.forEach { case ->
+                    cases.forEach { case -> // TODO: multiple match expressions
                         val switchLabelStatement = case[0] as? PsiSwitchLabelStatement ?: return@forEach
-                        val matchExpression =
-                            switchLabelStatement.caseValues?.expressions?.getOrNull(0)
+                        val matchExpressions =
+                            switchLabelStatement.caseValues?.expressions
                         addCase(
                             case = irSwitchStatementCase().apply {
                                 if (!switchLabelStatement.isDefaultCase) {
-                                    matchExpression(matchExpression = convertExpression(matchExpression))
+                                    matchExpressions?.forEach { matchExpression ->
+                                        addMatchExpression(
+                                            matchExpression = convertExpression(
+                                                matchExpression,
+                                                ignoreConstructorCalls
+                                            )
+                                        )
+                                    }
                                 }
 
                                 body(
                                     statement = irBlockStatement().apply {
                                         case.drop(1).forEach { caseBodyStatement ->
-                                            addStatement(statement = convertStatement(caseBodyStatement))
+                                            addStatement(
+                                                statement = convertStatement(
+                                                    caseBodyStatement,
+                                                    ignoreConstructorCalls
+                                                )
+                                            )
                                         }
                                     }.build()
                                 )
@@ -161,7 +191,7 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
         is PsiReturnStatement -> {
             irReturnStatement().apply {
                 psiStatement.returnValue?.let { returnValue ->
-                    expression(expression = convertExpression(returnValue))
+                    expression(expression = convertExpression(returnValue, ignoreConstructorCalls))
                 }
             }.build()
         }
@@ -176,7 +206,7 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
 
         is PsiThrowStatement -> {
             irThrowStatement(
-                expression = convertExpression(psiStatement.exception)
+                expression = convertExpression(psiStatement.exception, ignoreConstructorCalls)
             ).build()
         }
 
@@ -184,7 +214,7 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
             irTryCatchStatement(
                 tryBlock = irBlockStatement().apply {
                     psiStatement.tryBlock?.statements?.forEach { tryBlockStatement ->
-                        addStatement(statement = convertStatement(tryBlockStatement))
+                        addStatement(statement = convertStatement(tryBlockStatement, ignoreConstructorCalls))
                     }
                 }.build()
             ).apply {
@@ -201,7 +231,12 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
                                 body(
                                     statement = irBlockStatement().apply {
                                         statements.forEach { catchBlockStatement ->
-                                            addStatement(statement = convertStatement(catchBlockStatement))
+                                            addStatement(
+                                                statement = convertStatement(
+                                                    catchBlockStatement,
+                                                    ignoreConstructorCalls
+                                                )
+                                            )
                                         }
                                     }.build()
                                 )
@@ -214,7 +249,12 @@ internal fun convertStatement(psiStatement: PsiStatement): IrStatement {
                     finallyBlock(
                         statement = irBlockStatement().apply {
                             finallyBlockStatements.forEach { finallyBlockStatement ->
-                                addStatement(statement = convertStatement(finallyBlockStatement))
+                                addStatement(
+                                    statement = convertStatement(
+                                        finallyBlockStatement,
+                                        ignoreConstructorCalls
+                                    )
+                                )
                             }
                         }.build()
                     )

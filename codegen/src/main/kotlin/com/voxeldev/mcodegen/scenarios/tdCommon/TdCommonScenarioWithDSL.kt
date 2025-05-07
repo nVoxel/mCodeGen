@@ -90,6 +90,10 @@ fun main() {
 context(ScenarioScope)
 private fun runJavaTests() {
     // for test
+    val testConstructorsIR : IrFile = JavaModule.parse(sourcePath = "test_java_constructors.java")
+    JavaModule.generate(testConstructorsIR, "test", listOf())
+
+    // for test
     val testInitializersIR : IrFile = JavaModule.parse(sourcePath = "test_java_initializers.java")
     JavaModule.generate(testInitializersIR, "test", listOf())
 
@@ -113,6 +117,14 @@ private fun runJavaTests() {
 context(ScenarioScope)
 private fun runKotlinTests() {
     // for test
+    val testStatementsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_statements.kt")
+    //JavaModule.generate(testStatementsIR, "test", listOf())
+
+    // for test
+    val testConstructorsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_constructors.kt")
+    //JavaModule.generate(testConstructorsIR, "test", listOf())
+
+    // for test
     val testExpressionsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_expressions.kt")
     //JavaModule.generate(testExpressionsIR, "test", listOf())
 
@@ -131,10 +143,6 @@ private fun runKotlinTests() {
     // for test
     val testAnnotationsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_annotations.kt")
     //JavaModule.generate(testAnnotationsIR, "test", listOf())
-
-    // for test
-    val testStatementsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_statements.kt")
-    //JavaModule.generate(testStatementsIR, "test", listOf())
 
     // for test
     val testGenericsIR : IrFile = KotlinModule.parse(sourcePath = "test_kotlin_generic.kt")

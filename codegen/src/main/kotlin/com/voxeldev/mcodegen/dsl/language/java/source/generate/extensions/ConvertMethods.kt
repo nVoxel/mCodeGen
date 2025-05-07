@@ -6,6 +6,7 @@ import com.squareup.javapoet.ParameterSpec
 import com.squareup.javapoet.TypeSpec
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrInterfaceClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrConstructor
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
@@ -33,7 +34,7 @@ private fun convertMethod(
     irClass: IrClass,
     irMethod: IrMethod,
 ): MethodSpec {
-    val poetMethod = if (irMethod.isConstructor) {
+    val poetMethod = if (irMethod is IrConstructor) {
         MethodSpec.constructorBuilder()
     } else {
         MethodSpec.methodBuilder(irMethod.name).apply {
@@ -82,6 +83,12 @@ private fun convertMethod(
         val defaultValue = irMethod.languageProperties[JAVA_METHOD_DEFAULT_VALUE] as? IrExpression
         defaultValue?.let {
             defaultValue(convertExpression(irClass, defaultValue))
+        }
+
+        if (irMethod is IrConstructor) {
+            irMethod.otherConstructorCall?.let { otherConstructorCall ->
+                poetMethod.addStatement(convertExpression(irClass, otherConstructorCall))
+            }
         }
 
         irMethod.body?.let { irMethodBody ->

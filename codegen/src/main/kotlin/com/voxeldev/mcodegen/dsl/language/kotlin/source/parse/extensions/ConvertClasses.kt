@@ -1,6 +1,7 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions
 
 import com.voxeldev.mcodegen.dsl.ir.IrClass
+import com.voxeldev.mcodegen.dsl.ir.IrClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrAnnotationClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrClassClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrEnumClassKind
@@ -12,7 +13,6 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irClass
 import com.voxeldev.mcodegen.dsl.ir.builders.irSuperClass
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrObjectClassKind
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.builders.irClassStub
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.internalVisibility
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.privateVisibility
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.protectedVisibility
@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassNotAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
@@ -144,7 +143,19 @@ private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
         irClassBuilder = irClassBuilder,
     )
 
-    ktClassOrObject.declarations.filterIsInstance<KtFunction>()
+    convertFunctions(
+        ktClassOrObject = ktClassOrObject,
+        functions = buildList {
+            addAll(ktClassOrObject.declarations.filterIsInstance<KtFunction>())
+            ktClassOrObject.primaryConstructor?.let { primaryConstructor ->
+                add(primaryConstructor)
+            }
+            // addAll(ktClassOrObject.secondaryConstructors) they should also present in declarations
+        },
+        irClassBuilder = irClassBuilder,
+    )
+
+
 
     ktClassOrObject.declarations.filterIsInstance<KtClassOrObject>().forEach { nestedClass ->
         irClassBuilder.addNestedClass(convertClass(nestedClass))
@@ -163,25 +174,31 @@ private fun convertSuperclass(
         return null
     }
 
-    val declaration = DescriptorToSourceUtils.descriptorToDeclaration(classDescriptor)
-    return (declaration as? KtClassOrObject)?.let { superClassAsKt ->
-        val superClass = convertClass(superClassAsKt)
-        createSuperClassFromSuper(ktClassOrObject, superClass)
-    } ?: createSuperClassStubFromSuper(ktClassOrObject, classDescriptor, fqName)
+    return createSuperClassFromSuper(
+        ktClassOrObject = ktClassOrObject,
+        superClassName = fqName,
+        superClassKind = if (classDescriptor.kind == ClassKind.INTERFACE) IrInterfaceClassKind else IrClassClassKind
+    )
 }
 
 context(KotlinModule, BindingContext, ScenarioScope)
 private fun createSuperClassFromSuper(
     ktClassOrObject: KtClassOrObject,
-    superClass: IrClass,
+    superClassName: String,
+    superClassKind: IrClassKind,
 ): IrSuperClass {
-    val irSuperClassBuilder = irSuperClass(superClass)
+    val irSuperClassBuilder = irSuperClass(superClassName, superClassKind)
 
     val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
     val superAsType = ktClassOrObject.superTypeListEntries
         .mapNotNull { superTypeListEntry -> superTypeListEntry.typeReference?.typeElement }
-        .mapNotNull { superTypeElement -> convertKtTypeElement(superTypeElement, preloadedTypeParameters) as? IrTypeReference }
-        .find { superTypeReference -> superTypeReference.referencedClassName == superClass.name }
+        .mapNotNull { superTypeElement ->
+            convertKtTypeElement(
+                superTypeElement,
+                preloadedTypeParameters
+            ) as? IrTypeReference
+        }
+        .find { superTypeReference -> superTypeReference.referencedClassName == superClassName }
         ?: throw IllegalArgumentException("Unable to find superclass in ktClassOrObject by name")
 
     superAsType.typeParameters.forEach { typeParameter ->
@@ -189,28 +206,4 @@ private fun createSuperClassFromSuper(
     }
 
     return irSuperClassBuilder.build()
-}
-
-context(KotlinModule, BindingContext, ScenarioScope)
-private fun createSuperClassStubFromSuper(
-    ktClassOrObject: KtClassOrObject,
-    classDescriptor: ClassDescriptor,
-    superFqName: String,
-): IrSuperClass {
-    return createSuperClassFromSuper(
-        ktClassOrObject = ktClassOrObject,
-        superClass = irClassStub(superFqName).apply {
-            visibility(publicVisibility())
-            kind(
-                when(classDescriptor.kind) {
-                    ClassKind.OBJECT -> IrObjectClassKind
-                    ClassKind.ANNOTATION_CLASS -> IrAnnotationClassKind
-                    ClassKind.ENUM_CLASS -> IrEnumClassKind
-                    ClassKind.INTERFACE -> IrInterfaceClassKind
-                    // ClassKind.ENUM_ENTRY ->
-                    else -> IrClassClassKind
-                }
-            )
-        }.build(),
-    )
 }

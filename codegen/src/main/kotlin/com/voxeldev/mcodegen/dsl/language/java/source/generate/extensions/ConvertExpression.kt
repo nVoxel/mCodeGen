@@ -6,7 +6,9 @@ import com.voxeldev.mcodegen.dsl.ir.IrAssignmentExpression
 import com.voxeldev.mcodegen.dsl.ir.IrBinaryExpression
 import com.voxeldev.mcodegen.dsl.ir.IrCastExpression
 import com.voxeldev.mcodegen.dsl.ir.IrClass
+import com.voxeldev.mcodegen.dsl.ir.IrEmptyExpression
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
+import com.voxeldev.mcodegen.dsl.ir.IrExpressionUnknown
 import com.voxeldev.mcodegen.dsl.ir.IrIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrLiteralExpression
 import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
@@ -16,7 +18,6 @@ import com.voxeldev.mcodegen.dsl.ir.IrTypeCheckExpression
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReferenceIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrUnaryExpression
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.ir.IrExpressionUnknown
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 
 context(JavaModule, ScenarioScope)
@@ -32,22 +33,23 @@ internal fun convertExpression(
         }
 
         is IrIdentifierExpression -> {
-            poetCodeBlock.add("\$N", irExpression.expression)
+            irExpression.qualifier?.let { qualifier ->
+                poetCodeBlock.add(
+                    "\$L.",
+                    convertExpression(containingClass, qualifier)
+                )
+            }
+            poetCodeBlock.add(
+                "\$L",
+                convertExpression(containingClass, irExpression.selector)
+            )
         }
 
         is IrTypeReferenceIdentifierExpression -> {
-            if (irExpression.expression != null) {
-                poetCodeBlock.add(
-                    "\$T.\$N",
-                    convertType(irExpression.referencedType),
-                    irExpression.expression,
-                )
-            } else {
-                poetCodeBlock.add(
-                    "\$T",
-                    convertType(irExpression.referencedType)
-                )
-            }
+            poetCodeBlock.add(
+                "\$T",
+                convertType(irExpression.referencedType)
+            )
         }
 
         is IrMethodCallExpression -> {
@@ -165,6 +167,10 @@ internal fun convertExpression(
                     convertType(irExpression.checkType),
                 )
             }
+        }
+
+        is IrEmptyExpression -> {
+            // no-op
         }
 
         else -> {

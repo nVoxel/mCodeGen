@@ -6,11 +6,13 @@ import com.voxeldev.mcodegen.dsl.ir.IrBreakStatement
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrContinueStatement
 import com.voxeldev.mcodegen.dsl.ir.IrDoWhileStatement
+import com.voxeldev.mcodegen.dsl.ir.IrEmptyStatement
 import com.voxeldev.mcodegen.dsl.ir.IrExpressionStatement
 import com.voxeldev.mcodegen.dsl.ir.IrForStatement
 import com.voxeldev.mcodegen.dsl.ir.IrIfStatement
 import com.voxeldev.mcodegen.dsl.ir.IrReturnStatement
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
+import com.voxeldev.mcodegen.dsl.ir.IrStatementUnknown
 import com.voxeldev.mcodegen.dsl.ir.IrSwitchStatement
 import com.voxeldev.mcodegen.dsl.ir.IrSwitchStatement.IrSwitchStatementCase
 import com.voxeldev.mcodegen.dsl.ir.IrThrowStatement
@@ -19,7 +21,6 @@ import com.voxeldev.mcodegen.dsl.ir.IrTryCatchStatement.IrTryCatchStatementClaus
 import com.voxeldev.mcodegen.dsl.ir.IrVariableDeclarationStatement
 import com.voxeldev.mcodegen.dsl.ir.IrWhileStatement
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.ir.IrStatementUnknown
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 
 context(JavaModule, ScenarioScope)
@@ -55,7 +56,15 @@ internal fun convertStatement(
                     }
 
                     irStatement.initializer?.let { initializer ->
-                        add(" = \$L", convertExpression(containingClass, initializer))
+                        add(
+                            " = \$L",
+                            convertStatement(
+                                containingClass = containingClass,
+                                irStatement = initializer,
+                                addSemicolon = false,
+                                addLineBreak = false,
+                            )
+                        )
                     }
                 }.build()
 
@@ -222,6 +231,10 @@ internal fun convertStatement(
             }
         }
 
+        is IrEmptyStatement -> {
+            // no-op
+        }
+
         else -> {
             if (irStatement is IrStatementUnknown) {
                 val representation = irStatement.stringRepresentation.firstOrNull { it.language == languageName }
@@ -247,8 +260,15 @@ private fun convertSwitchStatementCases(
 ): CodeBlock {
     return CodeBlock.builder().apply {
         cases.forEach { switchStatementCase ->
-            if (switchStatementCase.matchExpression != null) {
-                add("case \$L:", convertExpression(containingClass, switchStatementCase.matchExpression))
+            if (switchStatementCase.matchExpressions.isNotEmpty()) {
+                add("case ")
+
+                val matchExpressions = switchStatementCase.matchExpressions.map { matchExpression ->
+                    convertExpression(containingClass, matchExpression)
+                }
+                add(CodeBlock.join(matchExpressions, ", "))
+
+                add(":")
             } else {
                 add("default:")
             }

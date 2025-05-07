@@ -5,6 +5,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrBlockStatement
 import com.voxeldev.mcodegen.dsl.ir.IrBreakStatement
 import com.voxeldev.mcodegen.dsl.ir.IrContinueStatement
 import com.voxeldev.mcodegen.dsl.ir.IrDoWhileStatement
+import com.voxeldev.mcodegen.dsl.ir.IrEmptyStatement
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrExpressionStatement
 import com.voxeldev.mcodegen.dsl.ir.IrForStatement
@@ -12,6 +13,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrIfStatement
 import com.voxeldev.mcodegen.dsl.ir.IrLocation
 import com.voxeldev.mcodegen.dsl.ir.IrReturnStatement
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
+import com.voxeldev.mcodegen.dsl.ir.IrStatementUnknown
 import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
 import com.voxeldev.mcodegen.dsl.ir.IrSwitchStatement
 import com.voxeldev.mcodegen.dsl.ir.IrThrowStatement
@@ -46,6 +48,27 @@ abstract class IrStatementBuilder : IrElementBuilder() {
         val annotations: List<IrAnnotation>,
         val languageProperties: Map<String, Any>,
     )
+}
+
+/**
+ * Creates a new [IrEmptyStatementBuilder] instance with the given expression.
+ */
+fun irEmptyStatement(): IrEmptyStatementBuilder =
+    IrEmptyStatementBuilder()
+
+/**
+ * Builder class for creating [IrEmptyStatement] instances.
+ */
+class IrEmptyStatementBuilder() : IrStatementBuilder() {
+    fun build(): IrEmptyStatement {
+        val properties = buildStatementProperties()
+        return IrEmptyStatement(
+            stringRepresentation = properties.stringRepresentation,
+            location = properties.location,
+            annotations = properties.annotations,
+            languageProperties = properties.languageProperties,
+        )
+    }
 }
 
 /**
@@ -89,13 +112,13 @@ class IrVariableDeclarationStatementBuilder(
     private val type: IrType,
 ) : IrStatementBuilder() {
     private var additionalNames: MutableList<String> = mutableListOf()
-    private var initializer: IrExpression? = null
+    private var initializer: IrStatement? = null
 
     fun addName(additionalName: String) {
         additionalNames.add(additionalName)
     }
 
-    fun initializer(initializer: IrExpression?) {
+    fun initializer(initializer: IrStatement) {
         this.initializer = initializer
     }
 
@@ -317,11 +340,11 @@ fun irSwitchStatementCase(): IrSwitchStatementCaseBuilder = IrSwitchStatementCas
  * Builder class for creating [IrSwitchStatement.IrSwitchStatementCase] instances.
  */
 class IrSwitchStatementCaseBuilder : IrStatementBuilder() {
-    private var matchExpression: IrExpression? = null
+    private var matchExpressions: MutableList<IrExpression> = mutableListOf()
     private var body: IrStatement? = null
 
-    fun matchExpression(matchExpression: IrExpression?) {
-        this.matchExpression = matchExpression
+    fun addMatchExpression(matchExpression: IrExpression) {
+        matchExpressions.add(matchExpression)
     }
 
     fun body(statement: IrStatement) {
@@ -331,7 +354,7 @@ class IrSwitchStatementCaseBuilder : IrStatementBuilder() {
     fun build(): IrSwitchStatement.IrSwitchStatementCase {
         val properties = buildStatementProperties()
         return IrSwitchStatement.IrSwitchStatementCase(
-            matchExpression = matchExpression,
+            matchExpressions = matchExpressions,
             body = body,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,
@@ -500,4 +523,24 @@ class IrTryCatchStatementClauseBuilder(private val exceptionType: IrType) : IrSt
             languageProperties = properties.languageProperties,
         )
     }
-} 
+}
+
+/**
+ * Creates a new [IrStatementUnknownBuilder] instance.
+ */
+fun irStatementUnknown(): IrStatementUnknownBuilder = IrStatementUnknownBuilder()
+
+/**
+ * Builder class for creating [IrStatementUnknown] instances.
+ */
+class IrStatementUnknownBuilder : IrStatementBuilder() {
+    fun build(): IrStatementUnknown {
+        val properties = buildStatementProperties()
+        return IrStatementUnknown(
+            stringRepresentation = properties.stringRepresentation,
+            location = properties.location,
+            annotations = properties.annotations,
+            languageProperties = properties.languageProperties,
+        )
+    }
+}

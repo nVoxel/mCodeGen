@@ -3,6 +3,7 @@ package com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions
 import com.voxeldev.mcodegen.dsl.ir.IrGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrTypeParameter
 import com.voxeldev.mcodegen.dsl.ir.builders.IrClassBuilder
+import com.voxeldev.mcodegen.dsl.ir.builders.IrMethodBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irGeneric
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeParameter
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
@@ -12,6 +13,20 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.psi.KtTypeParameterListOwner
 import org.jetbrains.kotlin.resolve.BindingContext
+
+context(KotlinModule, BindingContext, ScenarioScope)
+internal fun convertTypeParameters(
+    ktClassOrObject: KtClassOrObject,
+    ktTypeParameters: List<KtTypeParameter>,
+    irMethodBuilder: IrMethodBuilder,
+) {
+    val preloadedTypeParameters = preloadTypeParameters(ktTypeParameters)
+    ktTypeParameters.forEach { ktTypeParameter ->
+        irMethodBuilder.addTypeParameter(
+            convertTypeParameter(ktClassOrObject, ktTypeParameter, preloadedTypeParameters)
+        )
+    }
+}
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertTypeParameters(
@@ -28,7 +43,7 @@ internal fun convertTypeParameters(
 }
 
 context(KotlinModule, BindingContext, ScenarioScope)
-private fun convertTypeParameter(
+internal fun convertTypeParameter(
     ktClassOrObject: KtClassOrObject,
     ktTypeParameter: KtTypeParameter,
     preloadedTypeParameters: Map<String, IrGeneric>,

@@ -20,7 +20,8 @@ object KotlinModule : LanguageModule {
     init {
         // note: since some Kotlin version most stdlib sources should be in the kotlin-stdlib artifact
         // but our version is quite old, so we're using kotlin-stdlib-common artifact for stdlib source roots
-        // GlobalCompilerUtils.addKtSourceRoot(File("/Users/${System.getProperty("user.name")}/Downloads/kotlin-stdlib-common-1.3.61-sources"))
+        GlobalCompilerUtils.addKtSourceRoot(File("/Users/${System.getProperty("user.name")}/Downloads/kotlin-stdlib-1.3.61-sources"))
+        GlobalCompilerUtils.addKtSourceRoot(File("/Users/${System.getProperty("user.name")}/Downloads/kotlin-stdlib-common-1.3.61-sources"))
     }
 
     override val languageName: String = "kotlin"

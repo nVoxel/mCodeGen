@@ -54,7 +54,7 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
             addTypeVariable(convertTypeParameter(irTypeParameter))
         }
 
-        val extends = irClass.superClasses.filter { it.superClass.kind == IrClassClassKind }.run {
+        val extends = irClass.superClasses.filter { it.kind == IrClassClassKind }.run {
             if (size > 1) {
                 throw IllegalStateException("Java currently does not support more than one superclass")
             }
@@ -64,14 +64,14 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
 
         extends?.let {
             // TODO: support inheritance cases with types like List<T> using ParameterizedTypeName
-            superclass(ClassName.bestGuess(extends.superClass.name))
+            superclass(ClassName.bestGuess(extends.superClassName))
         }
 
-        val implements = irClass.superClasses.filter { it.superClass.kind == IrInterfaceClassKind }
+        val implements = irClass.superClasses.filter { it.kind == IrInterfaceClassKind }
 
         implements.forEach { implementedInterface ->
             // TODO: support inheritance cases with types like List<T> using ParameterizedTypeName
-            addSuperinterface(ClassName.bestGuess(implementedInterface.superClass.name))
+            addSuperinterface(ClassName.bestGuess(implementedInterface.superClassName))
         }
 
         convertFields(irClass, irClass.fields, this)

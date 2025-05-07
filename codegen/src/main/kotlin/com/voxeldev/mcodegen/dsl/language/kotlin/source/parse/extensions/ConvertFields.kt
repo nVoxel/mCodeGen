@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.isError
 
+// for fields declared in the primary constructor
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertFieldsAsParameters(
     ktClassOrObject: KtClassOrObject,
@@ -32,6 +33,7 @@ internal fun convertFieldsAsParameters(
     }
 }
 
+// for fields declared in the class body
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertFieldsAsProperties(
     ktClassOrObject: KtClassOrObject,
@@ -44,9 +46,8 @@ internal fun convertFieldsAsProperties(
     }
 }
 
-// fields declared in the primary constructor
 context(KotlinModule, BindingContext, ScenarioScope)
-private fun convertFieldAsParameter(
+internal fun convertFieldAsParameter(
     ktClassOrObject: KtClassOrObject,
     ktField: KtParameter,
 ): IrField? {
@@ -63,14 +64,15 @@ private fun convertFieldAsParameter(
 
     // TODO: convert annotations
 
-    // TODO: convert initializer
+    ktField.defaultValue?.let { defaultValue ->
+        irFieldBuilder.initializer(convertStatement(ktClassOrObject, defaultValue))
+    }
 
     return irFieldBuilder.build()
 }
 
-// fields declared in the class body
 context(KotlinModule, BindingContext, ScenarioScope)
-private fun convertFieldAsProperty(
+internal fun convertFieldAsProperty(
     ktClassOrObject: KtClassOrObject,
     ktField: KtProperty,
 ): IrField? {
@@ -87,7 +89,9 @@ private fun convertFieldAsProperty(
 
     // TODO: convert annotations
 
-    // TODO: convert initializer
+    ktField.initializer?.let { initializer ->
+        irFieldBuilder.initializer(convertStatement(ktClassOrObject, initializer))
+    }
 
     return irFieldBuilder.build()
 }
@@ -105,6 +109,12 @@ private fun convertFieldModifiers(
             else -> publicVisibility()
         }
     )
+
+    if (ktField.hasModifier(KtTokens.ABSTRACT_KEYWORD)) {
+        irFieldBuilder.addLanguageProperty(
+            KtTokens.ABSTRACT_KEYWORD.value, true
+        )
+    }
 
     if (ktField.hasModifier(KtTokens.FINAL_KEYWORD)) {
         irFieldBuilder.addLanguageProperty(
