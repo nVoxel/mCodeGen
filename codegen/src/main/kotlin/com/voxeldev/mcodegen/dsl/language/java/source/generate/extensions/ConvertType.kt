@@ -14,9 +14,7 @@ import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 
 context(JavaModule, ScenarioScope)
-internal fun convertType(
-    irType: IrType,
-): TypeName {
+internal fun convertType(irType: IrType): TypeName {
     return when (irType) {
         is IrArrayType -> ArrayTypeName.of(convertType(irType.elementType))
 

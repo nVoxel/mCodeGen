@@ -1,8 +1,13 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin
 
+import com.squareup.kotlinpoet.FileSpec
+import com.voxeldev.mcodegen.dsl.ir.IrClass
+import com.voxeldev.mcodegen.dsl.ir.IrField
 import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.ir.builders.irFile
 import com.voxeldev.mcodegen.dsl.language.base.LanguageModule
+import com.voxeldev.mcodegen.dsl.language.java.JavaModule
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions.convertClass
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertClasses
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertImports
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
@@ -11,7 +16,10 @@ import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapper
 import com.voxeldev.mcodegen.utils.GlobalCompilerUtils
 import com.voxeldev.mcodegen.utils.GlobalFileUtils
 import com.voxeldev.mcodegen.utils.GlobalFileUtils.asString
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.resolve.BindingContext
 import java.io.File
 import kotlin.io.path.Path
 
@@ -23,6 +31,9 @@ object KotlinModule : LanguageModule {
         GlobalCompilerUtils.addKtSourceRoot(File("/Users/${System.getProperty("user.name")}/Downloads/kotlin-stdlib-1.3.61-sources"))
         GlobalCompilerUtils.addKtSourceRoot(File("/Users/${System.getProperty("user.name")}/Downloads/kotlin-stdlib-common-1.3.61-sources"))
     }
+
+    const val KOTLIN_INDENT_PROPERTY_NAME = "indent"
+    private const val KOTLIN_INDENT_PROPERTY_DEFAULT_VALUE = "    "
 
     override val languageName: String = "kotlin"
 
@@ -36,7 +47,47 @@ object KotlinModule : LanguageModule {
         val ktFile = GlobalFileUtils.parseKotlinFile(codeString, fileName)
         val bindingContext = GlobalCompilerUtils.getAnalysisResult(ktFile).bindingContext
 
+        return parseSingleFile(fileName, ktFile, bindingContext)
+    }
+
+    /**
+     * Allows to reuse acquired BindingContext, significantly speeds up parsing with large source roots.
+     * @param files Stores pair alias-sourcePath, alias can be used later for map property delegation.
+     */
+    context(ScenarioScope)
+    fun parseMultiple(vararg files: Pair<String, String>): Map<String, IrFile> {
+        val aliases = files.map { it.first }
+        val sourcePaths = files.map { it.second }
+
+        val pathToFiles = sourcePaths.map { sourcePath ->
+            Path(scenarioConfiguration.sourcesDir, sourcePath)
+        }
+        val fileNames = pathToFiles.map { pathToFile -> pathToFile.fileName.toString() }
+
+        val codeStrings = pathToFiles.map { pathToFile -> File(pathToFile.toString()).asString() }
+
+        val ktFiles = codeStrings.zip(fileNames).map { (codeString, fileName) ->
+            GlobalFileUtils.parseKotlinFile(codeString, fileName)
+        }
+
+        val bindingContext = GlobalCompilerUtils.getAnalysisResult(*ktFiles.toTypedArray()).bindingContext
+
+        val irFiles = fileNames.zip(ktFiles).map { (fileName, ktFile) ->
+            parseSingleFile(fileName, ktFile, bindingContext)
+        }
+
+        return aliases.zip(irFiles).toMap()
+    }
+
+    context(ScenarioScope)
+    private fun parseSingleFile(
+        fileName: String,
+        ktFile: KtFile,
+        bindingContext: BindingContext,
+    ): IrFile {
         val irFileBuilder = irFile(fileName)
+
+        irFileBuilder.addLanguageProperty("package", ktFile.packageFqName.asString())
 
         with(bindingContext) {
             convertImports(ktFile.importList, irFileBuilder)
@@ -55,7 +106,42 @@ object KotlinModule : LanguageModule {
         applyToBasePath: String,
         mappers: List<GenerationMapper>
     ) {
-        TODO("Not yet implemented")
+        val mappedSource = mappers.fold(source) { acc, mapper -> mapper.map(acc) }
+
+        val filePackage = mappedSource.languageProperties["package"] as? String
+            ?: throw IllegalStateException("Package not found in the IrFile for Kotlin")
+
+        // TODO: probably imports
+
+        val poetFileBuilder = FileSpec.builder(filePackage, source.name.removeSuffix(".kt"))
+
+        source.declarations.forEach { declaration ->
+            when (declaration) {
+                is IrClass -> {
+                    poetFileBuilder.addType(convertClass(declaration))
+                }
+
+                is IrFunction -> {
+                    // TODO
+                }
+
+                is IrField -> {
+                    // TODO
+                }
+
+                else -> throw IllegalArgumentException("Unknown top-level declaration for Kotlin")
+            }
+        }
+
+        val indentProperty = scenarioConfiguration.properties.find { property ->
+            property.language == JavaModule.languageName && property.propertyName == KOTLIN_INDENT_PROPERTY_NAME
+        }?.propertyValue as? String
+        poetFileBuilder.indent(indentProperty ?: KOTLIN_INDENT_PROPERTY_DEFAULT_VALUE)
+
+        val outputPath = Path(scenarioConfiguration.outputDir, applyToBasePath)
+        val outputFile = File(outputPath.toString())
+
+        poetFileBuilder.build().writeTo(outputFile)
     }
 
     context(ScenarioScope)

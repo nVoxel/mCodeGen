@@ -21,8 +21,8 @@ import kotlin.io.path.Path
 
 object JavaModule : LanguageModule {
 
-    const val INDENT_PROPERTY_NAME = "indent"
-    private const val INDENT_PROPERTY_DEFAULT_VALUE = "    "
+    const val JAVA_INDENT_PROPERTY_NAME = "indent"
+    private const val JAVA_INDENT_PROPERTY_DEFAULT_VALUE = "    "
 
     const val PSI_CLASS = "psi_class"
 
@@ -56,7 +56,7 @@ object JavaModule : LanguageModule {
         val mappedSource = mappers.fold(source) { acc, mapper -> mapper.map(acc) }
 
         val filePackage = mappedSource.languageProperties["package"] as? String
-            ?: throw IllegalStateException("Package not found for java IR")
+            ?: throw IllegalStateException("Package not found in the IrFile for Java")
 
         val staticImports = mappedSource.imports.filter { import ->
             import.languageProperties[PsiModifier.STATIC] == true
@@ -85,9 +85,9 @@ object JavaModule : LanguageModule {
         }
 
         val indentProperty = scenarioConfiguration.properties.find { property ->
-            property.language == languageName && property.propertyName == INDENT_PROPERTY_NAME
+            property.language == languageName && property.propertyName == JAVA_INDENT_PROPERTY_NAME
         }?.propertyValue as? String
-        poetFileBuilder.indent(indentProperty ?: INDENT_PROPERTY_DEFAULT_VALUE)
+        poetFileBuilder.indent(indentProperty ?: JAVA_INDENT_PROPERTY_DEFAULT_VALUE)
 
         val outputPath = Path(scenarioConfiguration.outputDir, applyToBasePath)
         val outputFile = File(outputPath.toString())

@@ -14,6 +14,9 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.psi.KtTypeParameterListOwner
 import org.jetbrains.kotlin.resolve.BindingContext
 
+const val KT_VARIANCE = "variance"
+const val KT_REIFIED = "reified"
+
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertTypeParameters(
     ktClassOrObject: KtClassOrObject,
@@ -69,8 +72,8 @@ internal fun convertTypeParameter(
     val bounds = listOfNotNull(directBound) + whereBounds
 
     val props = buildMap<String, Any> {
-        put("variance", ktTypeParameter.variance.label)
-        if (ktTypeParameter.hasModifier(KtTokens.REIFIED_KEYWORD)) put("reified", true)
+        put(KT_VARIANCE, ktTypeParameter.variance.label)
+        if (ktTypeParameter.hasModifier(KtTokens.REIFIED_KEYWORD)) put(KT_REIFIED, true)
     }
 
     return irTypeParameter.apply {

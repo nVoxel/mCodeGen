@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.psi.KtWhenConditionWithExpression
 import org.jetbrains.kotlin.psi.KtWhenExpression
 import org.jetbrains.kotlin.psi.KtWhileExpression
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.utils.doNothing
 
 const val KT_LABEL = "ktLabel"
 
