@@ -6,17 +6,6 @@ dependencies {
     implementation(libs.kotlin.jdk8)
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlin.compiler)
-
-    implementation(libs.javapoet)
-    implementation(libs.kotlinpoet)
-
-    implementation(libs.jna)
-    implementation(libs.javaparser)
-
-    implementation(projects.dslCore)
-    implementation(projects.dslUtils)
-    implementation(projects.languageModuleJava)
-    implementation(projects.languageModuleKotlin)
 }
 
 kotlin {

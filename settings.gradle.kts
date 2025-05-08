@@ -1,5 +1,7 @@
 rootProject.name = "mCodeGen"
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
     repositories {
         mavenCentral()
@@ -26,3 +28,9 @@ dependencyResolutionManagement {
 }
 
 include("codegen")
+include("dsl-core")
+include("dsl-utils")
+include("ir-core")
+include("language-module-java")
+include("language-module-kotlin")
+include("language-module-swift")
