@@ -9,7 +9,6 @@ import com.voxeldev.mcodegen.dsl.scenario.configuration.baseScenarioConfiguratio
 import com.voxeldev.mcodegen.dsl.scenario.manager.baseScenarioManager
 import com.voxeldev.mcodegen.dsl.scenario.manager.configuration.scenarioManagerConfiguration
 
-
 fun main() {
     val scenarioManager = baseScenarioManager()
 
@@ -89,28 +88,22 @@ fun main() {
 
 context(ScenarioScope)
 private fun runJavaTests() {
-    // for test
-    val testConstructorsIR : IrFile = JavaModule.parse(sourcePath = "test_java_constructors.java")
-    JavaModule.generate(testConstructorsIR, "test", listOf())
+    val testConstructorsIR: IrFile = JavaModule.parse(sourcePath = "test_java_constructors.java")
+    KotlinModule.generate(testConstructorsIR, "test", listOf())
 
-    // for test
-    val testInitializersIR : IrFile = JavaModule.parse(sourcePath = "test_java_initializers.java")
+    val testInitializersIR: IrFile = JavaModule.parse(sourcePath = "test_java_initializers.java")
     JavaModule.generate(testInitializersIR, "test", listOf())
 
-    // for test
-    val testExpressionsIR : IrFile = JavaModule.parse(sourcePath = "test_java_expressions.java")
+    val testExpressionsIR: IrFile = JavaModule.parse(sourcePath = "test_java_expressions.java")
     JavaModule.generate(testExpressionsIR, "test", listOf())
 
-    // for test
-    val testAnnotationsIR : IrFile = JavaModule.parse(sourcePath = "test_java_annotations.java")
+    val testAnnotationsIR: IrFile = JavaModule.parse(sourcePath = "test_java_annotations.java")
     JavaModule.generate(testAnnotationsIR, "test", listOf())
 
-    // for test
-    val testStatementsIR : IrFile = JavaModule.parse(sourcePath = "test_java_statements.java")
+    val testStatementsIR: IrFile = JavaModule.parse(sourcePath = "test_java_statements.java")
     JavaModule.generate(testStatementsIR, "test", listOf())
 
-    // for test
-    val testGenericsIR : IrFile = JavaModule.parse(sourcePath = "test_java_generic.java")
+    val testGenericsIR: IrFile = JavaModule.parse(sourcePath = "test_java_generic.java")
     JavaModule.generate(testGenericsIR, "test", listOf())
 }
 
@@ -127,35 +120,27 @@ private fun runKotlinTests() {
         "testGenericsIR" to "test_kotlin_generic.kt",
     )
 
-    // for test
     val testStatementsIR by kotlinTests
     KotlinModule.generate(testStatementsIR, "test", listOf())
 
-    // for test
     val testConstructorsIR by kotlinTests
     KotlinModule.generate(testConstructorsIR, "test", listOf())
 
-    // for test
     val testExpressionsIR by kotlinTests
     KotlinModule.generate(testExpressionsIR, "test", listOf())
 
-    // for test
     val testPropertiesIR by kotlinTests
     KotlinModule.generate(testPropertiesIR, "test", listOf())
 
-    // for test
     val testInheritanceIR by kotlinTests
     KotlinModule.generate(testInheritanceIR, "test", listOf())
 
-    // for test
     val testInitializersIR by kotlinTests
     KotlinModule.generate(testInitializersIR, "test", listOf())
 
-    // for test
     val testAnnotationsIR by kotlinTests
     KotlinModule.generate(testAnnotationsIR, "test", listOf())
 
-    // for test
     val testGenericsIR by kotlinTests
     KotlinModule.generate(testGenericsIR, "test", listOf())
 }

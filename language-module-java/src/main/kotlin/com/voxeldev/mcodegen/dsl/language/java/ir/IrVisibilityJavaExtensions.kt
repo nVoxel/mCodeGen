@@ -48,6 +48,4 @@ data class IrVisibilityPackagePrivate(
             representation = "package-private",
         )
     )
-) : IrVisibility(
-    stringRepresentation = stringRepresentation,
-)
+) : IrVisibility

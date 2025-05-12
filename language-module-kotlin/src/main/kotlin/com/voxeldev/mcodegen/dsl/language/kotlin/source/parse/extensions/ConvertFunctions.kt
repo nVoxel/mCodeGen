@@ -207,7 +207,9 @@ private fun convertParameterType(
 
     if (parameterDescriptor == null || parameterDescriptor.returnTypeOrNothing.isError) {
         // probably caused by missing source roots
-        throw IllegalArgumentException("Please, specify the type for ${ktParameter.name} parameter explicitly")
+        throw IllegalArgumentException(
+            "Please, specify the type for ${ktParameter.name} parameter explicitly"
+        )
     }
 
     return convertKotlinType(parameterDescriptor.returnTypeOrNothing, preloadedTypeParameters)

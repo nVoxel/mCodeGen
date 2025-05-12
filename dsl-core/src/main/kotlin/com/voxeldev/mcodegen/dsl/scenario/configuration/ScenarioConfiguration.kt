@@ -1,8 +1,11 @@
 package com.voxeldev.mcodegen.dsl.scenario.configuration
 
+import com.voxeldev.mcodegen.dsl.source.edit.step.EditStepHandler
+
 interface ScenarioConfiguration {
     val sourcesDir: String
     val outputDir: String
+    val editStepHandlers: Map<String, EditStepHandler<*>>
     val properties: List<ScenarioConfigurationProperty>
 }
 

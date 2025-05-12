@@ -97,6 +97,16 @@ object JavaModule : LanguageModule {
 
     context(ScenarioScope)
     override fun edit(sourcePath: String, editScenario: EditScenario) {
-        TODO()
+        val pathToFile = Path(scenarioConfiguration.sourcesDir, sourcePath)
+
+        val initialCodeString = File(pathToFile.toString()).asString()
+
+        val modifiedCodeString = editScenario.getSteps().fold(initialCodeString) { acc, editStep ->
+            val editStepHandler = scenarioConfiguration.editStepHandlers[editStep.name]
+                ?: error("EditStepHandler for ${editStep.name} not found")
+            editStepHandler.handleAnyStep(editStep, acc)
+        }
+
+        File(pathToFile.toString()).writeText(modifiedCodeString)
     }
 }
