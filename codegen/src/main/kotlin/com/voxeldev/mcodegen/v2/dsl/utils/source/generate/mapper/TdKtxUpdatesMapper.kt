@@ -1,4 +1,4 @@
-package com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.mapper
+package com.voxeldev.mcodegen.v2.dsl.utils.source.generate.mapper
 
 import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope

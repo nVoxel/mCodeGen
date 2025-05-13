@@ -149,6 +149,7 @@ object KotlinModule : LanguageModule {
         editScenario: EditScenario
     ) {
         val pathToFile = Path(scenarioConfiguration.sourcesDir, sourcePath)
+        val fileName = pathToFile.fileName.toString()
 
         val initialCodeString = File(pathToFile.toString()).asString()
 
@@ -158,6 +159,7 @@ object KotlinModule : LanguageModule {
             editStepHandler.handleAnyStep(editStep, acc)
         }
 
-        File(pathToFile.toString()).writeText(modifiedCodeString)
+        val outputPath = Path(scenarioConfiguration.outputDir, fileName)
+        File(outputPath.toString()).writeText(modifiedCodeString)
     }
 }

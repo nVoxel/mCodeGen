@@ -2,12 +2,18 @@ package com.voxeldev.mcodegen.v2
 
 import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
+import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.scenario.appendJavaInterfacesEditScenario
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import com.voxeldev.mcodegen.dsl.scenario.baseScenario
 import com.voxeldev.mcodegen.dsl.scenario.configuration.baseScenarioConfiguration
 import com.voxeldev.mcodegen.dsl.scenario.manager.baseScenarioManager
 import com.voxeldev.mcodegen.dsl.scenario.manager.configuration.scenarioManagerConfiguration
+import com.voxeldev.mcodegen.dsl.utils.source.unify.UnifyClassesStrategyByNameAndFields
+import com.voxeldev.mcodegen.dsl.utils.source.unify.unifySourcesList
+import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AddJavaGettersEditStepHandler
+import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AddJavaImportEditStepHandler
+import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AppendJavaInterfacesEditStepHandler
 
 fun main() {
     val scenarioManager = baseScenarioManager()
@@ -15,26 +21,30 @@ fun main() {
     val tdLibScenarioConfguration = baseScenarioConfiguration {
         setSourcesDir("../../Downloads/")
         setOutputDir("generated")
+
+        addEditStepHandler(AddJavaImportEditStepHandler())
+        addEditStepHandler(AppendJavaInterfacesEditStepHandler())
+        addEditStepHandler(AddJavaGettersEditStepHandler())
     }
 
     val tdLibScenario = baseScenario(
         name = "TDLib scenario",
         configuration = tdLibScenarioConfguration,
     ) {
-        // val androidSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiAndroid.java")
-        // val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiDesktop.java")
+        val androidSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiAndroid.java")
+        val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiDesktop.java")
 
         runJavaTests()
         runKotlinTests()
 
         // val iosSourceIR : IR = SwiftModule.parse(sourcePath = "path/to/ios/source/file.swift")
 
-        /*val commonClasses = unifySources(
-            strategy = UnifyStrategyByNameAndMethods(),
-            sources = listOf(androidSourceIR, desktopSourceIR, *//*iosSourceIR*//*),
+        val commonClasses = unifySourcesList(
+            strategy = UnifyClassesStrategyByNameAndFields(),
+            androidSourceIR, desktopSourceIR, /*iosSourceIR*/
         )
 
-        KotlinModule.generate(
+        /*KotlinModule.generate(
             source = commonClasses,
             mappers = listOf(kmpCommonInterfacesMapper()),
         )
@@ -64,13 +74,13 @@ fun main() {
         )
 
         JavaModule.edit(
-            sourcePath = "path/to/android/source/file.java",
-            editScenario = appendJavaInterfacesEditScenario(),
+            sourcePath = "TdApiAndroid.java",
+            editScenario = appendJavaInterfacesEditScenario(commonClasses),
         )
 
         JavaModule.edit(
-            sourcePath = "path/to/desktop/source/file.java",
-            editScenario = appendJavaInterfacesEditScenario(),
+            sourcePath = "TdApiDesktop.java",
+            editScenario = appendJavaInterfacesEditScenario(commonClasses),
         )
 
         SwiftModule.edit(

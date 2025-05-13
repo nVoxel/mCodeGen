@@ -17,6 +17,7 @@ import com.voxeldev.mcodegen.dsl.utils.GlobalFileUtils
 import com.voxeldev.mcodegen.dsl.utils.GlobalFileUtils.asString
 import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
 import java.io.File
+import java.nio.file.Files
 import kotlin.io.path.Path
 
 object JavaModule : LanguageModule {
@@ -98,6 +99,7 @@ object JavaModule : LanguageModule {
     context(ScenarioScope)
     override fun edit(sourcePath: String, editScenario: EditScenario) {
         val pathToFile = Path(scenarioConfiguration.sourcesDir, sourcePath)
+        val fileName = pathToFile.fileName.toString()
 
         val initialCodeString = File(pathToFile.toString()).asString()
 
@@ -107,6 +109,8 @@ object JavaModule : LanguageModule {
             editStepHandler.handleAnyStep(editStep, acc)
         }
 
-        File(pathToFile.toString()).writeText(modifiedCodeString)
+        val outputPath = Path(scenarioConfiguration.outputDir, fileName)
+        Files.createDirectories(Path(scenarioConfiguration.outputDir))
+        File(outputPath.toString()).writeText(modifiedCodeString)
     }
 }
