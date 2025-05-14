@@ -61,6 +61,7 @@ open class IrConstructor(
 data class IrParameter(
     val name: String,
     val type: IrType,
+    val defaultValue: IrExpression?,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()

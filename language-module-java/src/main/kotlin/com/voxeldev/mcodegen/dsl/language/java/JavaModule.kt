@@ -7,7 +7,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.ir.builders.irFile
 import com.voxeldev.mcodegen.dsl.language.base.LanguageModule
 import com.voxeldev.mcodegen.dsl.language.java.source.generate.extensions.convertClass
-import com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions.STATIC_IMPORT_REFERENCE
+import com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions.JAVA_STATIC_IMPORT_REFERENCE
 import com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions.convertClasses
 import com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions.convertImports
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
@@ -25,7 +25,7 @@ object JavaModule : LanguageModule {
     const val JAVA_INDENT_PROPERTY_NAME = "indent"
     private const val JAVA_INDENT_PROPERTY_DEFAULT_VALUE = "    "
 
-    const val PSI_CLASS = "psi_class"
+    const val JAVA_PSI_CLASS = "psi_class"
 
     override val languageName: String = "java"
 
@@ -61,11 +61,11 @@ object JavaModule : LanguageModule {
 
         val staticImports = mappedSource.imports.filter { import ->
             import.languageProperties[PsiModifier.STATIC] == true
-                    && import.languageProperties[STATIC_IMPORT_REFERENCE] is String
+                    && import.languageProperties[JAVA_STATIC_IMPORT_REFERENCE] is String
         }.map { import ->
             Pair(
                 first = import.path,
-                second = if (import.isWildcard) "*" else import.languageProperties[STATIC_IMPORT_REFERENCE] as String
+                second = if (import.isWildcard) "*" else import.languageProperties[JAVA_STATIC_IMPORT_REFERENCE] as String
             )
         }
 

@@ -20,19 +20,6 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.isError
 
-// for fields declared in the primary constructor
-context(KotlinModule, BindingContext, ScenarioScope)
-internal fun convertFieldsAsParameters(
-    ktClassOrObject: KtClassOrObject,
-    fields: List<KtParameter>,
-    irClassBuilder: IrClassBuilder,
-) {
-    fields.forEach { field ->
-        val irField = convertFieldAsParameter(ktClassOrObject, field) ?: return@forEach
-        irClassBuilder.addField(irField)
-    }
-}
-
 // for fields declared in the class body
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertFieldsAsProperties(
@@ -60,7 +47,7 @@ internal fun convertFieldAsParameter(
 
     convertFieldModifiers(ktField, irFieldBuilder)
 
-    irFieldBuilder.mutable(isMutable = ktField.valOrVarKeyword?.text == KtTokens.VAL_KEYWORD.value)
+    irFieldBuilder.mutable(isMutable = ktField.valOrVarKeyword?.text != KtTokens.VAL_KEYWORD.value)
 
     // TODO: convert annotations
 

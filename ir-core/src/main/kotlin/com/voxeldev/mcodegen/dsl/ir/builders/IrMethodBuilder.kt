@@ -1,6 +1,7 @@
 package com.voxeldev.mcodegen.dsl.ir.builders
 
 import com.voxeldev.mcodegen.dsl.ir.IrConstructor
+import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.IrMethodBody
 import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
@@ -144,11 +145,17 @@ class IrParameterBuilder(
     private val name: String,
     private val type: IrType,
 ) : IrElementBuilder() {
+    private var defaultValue: IrExpression? = null
+
+    fun defaultValue(expression: IrExpression) {
+        defaultValue = expression
+    }
 
     fun build(): IrParameter {
         return IrParameter(
             name = name,
             type = type,
+            defaultValue = defaultValue,
             location = location,
             annotations = annotations,
             languageProperties = languageProperties,

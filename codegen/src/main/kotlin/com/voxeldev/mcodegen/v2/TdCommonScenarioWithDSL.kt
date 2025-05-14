@@ -99,7 +99,7 @@ fun main() {
 context(ScenarioScope)
 private fun runJavaTests() {
     val testConstructorsIR: IrFile = JavaModule.parse(sourcePath = "test_java_constructors.java")
-    KotlinModule.generate(testConstructorsIR, "test", listOf())
+    JavaModule.generate(testConstructorsIR, "test", listOf())
 
     val testInitializersIR: IrFile = JavaModule.parse(sourcePath = "test_java_initializers.java")
     JavaModule.generate(testInitializersIR, "test", listOf())

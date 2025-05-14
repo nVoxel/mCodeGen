@@ -1,19 +1,19 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions
 
-import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeSpec
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrAnnotationClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrClassClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrEnumClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrInterfaceClassKind
+import com.voxeldev.mcodegen.dsl.ir.IrParameter
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityInternal
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrObjectClassKind
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_SUPERCLASS_CTOR_PARAMETERS
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.lexer.KtTokens
 
@@ -77,41 +77,21 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
             addTypeVariable(convertTypeParameter(irTypeParameter))
         }
 
-        val extends = irClass.superClasses.filter { it.kind == IrClassClassKind }.run {
-            if (size > 1) {
-                throw IllegalStateException("Kotlin currently does not support more than one superclass")
+        convertSuperClasses(irClass.superClasses, this)
+
+        val superClassConstructorParams = irClass.languageProperties[KT_SUPERCLASS_CTOR_PARAMETERS] as? List<*>
+        superClassConstructorParams
+            ?.filterIsInstance<IrParameter>()
+            ?.forEach { superClassConstructorParam ->
+                val value = superClassConstructorParam.defaultValue ?: return@forEach
+                // addSuperclassConstructorParameter() // TODO: convert expression
             }
 
-            firstOrNull()
-        }
+        convertFields(irClass.fields, this)
 
-        extends?.let {
-            val superClassName = ClassName.bestGuess(extends.superClassName)
-            val superClassTypes = extends.types.map { typeParam ->
-                convertType(typeParam)
-            }
+        convertFunctions(irClass.methods, this)
 
-            if (superClassTypes.isNotEmpty()) {
-                superclass(superClassName.parameterizedBy(superClassTypes))
-            } else {
-                superclass(superClassName)
-            }
-        }
-
-        val implements = irClass.superClasses.filter { it.kind == IrInterfaceClassKind }
-
-        implements.forEach { implementedInterface ->
-            val superInterfaceName = ClassName.bestGuess(implementedInterface.superClassName)
-            val superInterfaceTypes = implementedInterface.types.map { typeParam ->
-                convertType(typeParam)
-            }
-
-            if (superInterfaceTypes.isNotEmpty()) {
-                addSuperinterface(superInterfaceName.parameterizedBy(superInterfaceTypes))
-            } else {
-                addSuperinterface(superInterfaceName)
-            }
-        }
+        // TODO: convert initializers
 
         irClass.nestedClasses.forEach { nestedIrClass ->
             addType(convertClass(irClass = nestedIrClass))

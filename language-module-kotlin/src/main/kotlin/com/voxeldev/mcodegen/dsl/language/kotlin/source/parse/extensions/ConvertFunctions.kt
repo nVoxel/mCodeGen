@@ -6,6 +6,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.builders.IrClassBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.IrConstructorBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.IrMethodBuilder
+import com.voxeldev.mcodegen.dsl.ir.builders.IrParameterBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irConstructor
 import com.voxeldev.mcodegen.dsl.ir.builders.irMethod
 import com.voxeldev.mcodegen.dsl.ir.builders.irMethodBody
@@ -21,6 +22,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
@@ -28,7 +30,9 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.inference.returnTypeOrNothing
 import org.jetbrains.kotlin.types.isError
 
-const val KT_PRIMARY_CONSTRUCTOR = "ktPrimaryConstructor"
+const val KT_PRIMARY_CTOR = "ktPrimaryCtor"
+const val KT_PRIMARY_CTOR_VAL_OR_VAR_KEYWORD = "ktValOrVarKeyword"
+const val KT_PRIMARY_CTOR_PARAMETER_VISIBILITY = "ktPrimaryCtorParameterVisibility"
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertFunctions(
@@ -59,7 +63,7 @@ private fun convertFunction(
             )
         ).apply {
             if (ktFunction is KtPrimaryConstructor) {
-                addLanguageProperty(KT_PRIMARY_CONSTRUCTOR, true)
+                addLanguageProperty(KT_PRIMARY_CTOR, true)
             }
         }
     } else {
@@ -85,7 +89,21 @@ private fun convertFunction(
                     ktClassOrObject = ktClassOrObject,
                     ktParameter = parameter,
                 ),
-            ).build()
+            ).apply {
+                parameter.defaultValue?.let { defaultValue ->
+                    defaultValue(convertExpression(ktClassOrObject, defaultValue))
+                }
+
+                if (ktFunction is KtPrimaryConstructor && parameter.hasValOrVar()) {
+                    val valOrVarKeyword = parameter.valOrVarKeyword?.text ?: return@apply
+                    addLanguageProperty(
+                        KT_PRIMARY_CTOR_VAL_OR_VAR_KEYWORD,
+                        valOrVarKeyword,
+                    )
+
+                    convertPrimaryConstructorFieldModifiers(parameter, this)
+                }
+            }.build()
         )
     }
 
@@ -159,6 +177,70 @@ private fun convertFunctionModifiers(
             KtTokens.OPEN_KEYWORD.value, true
         )
     }
+
+    if (ktFunction.hasModifier(KtTokens.INLINE_KEYWORD)) {
+        irMethodBuilder.addLanguageProperty(
+            KtTokens.INLINE_KEYWORD.value, true
+        )
+    }
+
+    if (ktFunction.hasModifier(KtTokens.OPERATOR_KEYWORD)) {
+        irMethodBuilder.addLanguageProperty(
+            KtTokens.OPERATOR_KEYWORD.value, true
+        )
+    }
+
+    if (ktFunction.hasModifier(KtTokens.SUSPEND_KEYWORD)) {
+        irMethodBuilder.addLanguageProperty(
+            KtTokens.SUSPEND_KEYWORD.value, true
+        )
+    }
+
+    if (ktFunction.hasModifier(KtTokens.TAILREC_KEYWORD)) {
+        irMethodBuilder.addLanguageProperty(
+            KtTokens.TAILREC_KEYWORD.value, true
+        )
+    }
+}
+
+context(KotlinModule, BindingContext, ScenarioScope)
+private fun convertPrimaryConstructorFieldModifiers(
+    ktParameter: KtModifierListOwner,
+    irParameterBuilder: IrParameterBuilder,
+) {
+    irParameterBuilder.addLanguageProperty(
+        KT_PRIMARY_CTOR_PARAMETER_VISIBILITY,
+        when {
+            ktParameter.hasModifier(KtTokens.PROTECTED_KEYWORD) -> protectedVisibility()
+            ktParameter.hasModifier(KtTokens.INTERNAL_KEYWORD) -> internalVisibility()
+            ktParameter.hasModifier(KtTokens.PRIVATE_KEYWORD) -> privateVisibility()
+            else -> publicVisibility()
+        }
+    )
+
+    if (ktParameter.hasModifier(KtTokens.ABSTRACT_KEYWORD)) {
+        irParameterBuilder.addLanguageProperty(
+            KtTokens.ABSTRACT_KEYWORD.value, true
+        )
+    }
+
+    if (ktParameter.hasModifier(KtTokens.OVERRIDE_KEYWORD)) {
+        irParameterBuilder.addLanguageProperty(
+            KtTokens.OVERRIDE_KEYWORD.value, true
+        )
+    }
+
+    if (ktParameter.hasModifier(KtTokens.FINAL_KEYWORD)) {
+        irParameterBuilder.addLanguageProperty(
+            KtTokens.FINAL_KEYWORD.value, true
+        )
+    }
+
+    if (ktParameter.hasModifier(KtTokens.OPEN_KEYWORD)) {
+        irParameterBuilder.addLanguageProperty(
+            KtTokens.OPEN_KEYWORD.value, true
+        )
+    }
 }
 
 context(KotlinModule, BindingContext, ScenarioScope)
@@ -183,8 +265,10 @@ private fun convertFunctionType(
 
     if (functionDescriptor == null || functionDescriptor.returnTypeOrNothing.isError) {
         // probably caused by missing source roots
-        throw IllegalArgumentException("Please, specify the type " +
-                "for ${ktCallable.name} ${if (isConstructor) "fun constructor" else "fun"} explicitly")
+        throw IllegalArgumentException(
+            "Please, specify the type " +
+                    "for ${ktCallable.name} ${if (isConstructor) "fun constructor" else "fun"} explicitly"
+        )
     }
 
     return convertKotlinType(functionDescriptor.returnTypeOrNothing, preloadedTypeParameters)

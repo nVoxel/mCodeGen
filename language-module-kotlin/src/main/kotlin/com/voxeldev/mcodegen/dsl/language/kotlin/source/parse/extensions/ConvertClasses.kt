@@ -10,6 +10,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrSuperClass
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
 import com.voxeldev.mcodegen.dsl.ir.builders.IrFileBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irClass
+import com.voxeldev.mcodegen.dsl.ir.builders.irParameter
 import com.voxeldev.mcodegen.dsl.ir.builders.irSuperClass
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrObjectClassKind
@@ -26,10 +27,14 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassNotAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
+
+const val KT_SUPERCLASS_CTOR_PARAMETERS = "ktSuperClassCtorParameters"
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertClasses(ktClassesOrObjects: List<KtClassOrObject>, irFileBuilder: IrFileBuilder) {
@@ -125,15 +130,31 @@ private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
 
     interfaces.forEach { superInterface -> irClassBuilder.addSuperClass(superInterface) }
 
-    val constructorFields = ktClassOrObject
-        .primaryConstructorParameters
-        .filter { it.hasValOrVar() }
+    // : SuperClass(params)
+    val superClassConstructorParams = ktClassOrObject.superTypeListEntries
+        .filterIsInstance<KtSuperTypeCallEntry>()
+        .firstOrNull()
+        ?.let { call ->
+            val resolvedCall = call.getResolvedCall(this@BindingContext) ?: return@let null
+            val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
 
-    convertFieldsAsParameters(
-        ktClassOrObject = ktClassOrObject,
-        fields = constructorFields,
-        irClassBuilder = irClassBuilder,
-    )
+            resolvedCall.valueArguments.mapNotNull { (param, arg) ->
+                val expression = arg.arguments.single().getArgumentExpression() ?: return@mapNotNull null
+                val type = this@BindingContext.getType(expression) ?: return@mapNotNull null
+                val name = param.name.asString()
+
+                irParameter(name, convertKotlinType(type, preloadedTypeParameters)).apply {
+                    defaultValue(convertExpression(ktClassOrObject, expression))
+                }.build()
+            }
+        }
+
+    superClassConstructorParams?.let {
+        irClassBuilder.addLanguageProperty(
+            KT_SUPERCLASS_CTOR_PARAMETERS,
+            superClassConstructorParams,
+        )
+    }
 
     val bodyFields = ktClassOrObject.declarations.filterIsInstance<KtProperty>()
 
@@ -154,8 +175,6 @@ private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
         },
         irClassBuilder = irClassBuilder,
     )
-
-
 
     ktClassOrObject.declarations.filterIsInstance<KtClassOrObject>().forEach { nestedClass ->
         irClassBuilder.addNestedClass(convertClass(nestedClass))

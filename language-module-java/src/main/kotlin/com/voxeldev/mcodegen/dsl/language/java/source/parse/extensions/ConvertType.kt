@@ -51,7 +51,7 @@ internal fun convertType(psiType: PsiType?): IrType {
 
                 irTypeReference(referencedClassName = resolvedClassName).apply {
                     nullable(true)
-                    addLanguageProperty(PSI_CLASS, resolvedClass)
+                    addLanguageProperty(JAVA_PSI_CLASS, resolvedClass)
                     psiType.typeArguments()
                         .mapNotNull { it as? PsiType }
                         .forEach { typeArgument ->

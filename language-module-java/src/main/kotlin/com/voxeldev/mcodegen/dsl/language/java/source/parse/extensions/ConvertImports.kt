@@ -7,7 +7,7 @@ import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiImportList
 import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
 
-const val STATIC_IMPORT_REFERENCE = "staticImportReference"
+const val JAVA_STATIC_IMPORT_REFERENCE = "staticImportReference"
 
 context(JavaModule, ScenarioScope)
 internal fun convertImports(psiImports: PsiImportList, irFileBuilder: IrFileBuilder) {
@@ -31,7 +31,7 @@ internal fun convertImports(psiImports: PsiImportList, irFileBuilder: IrFileBuil
                 isWildcard = importStaticStatement.isOnDemand,
             ).apply {
                 addLanguageProperty(PsiModifier.STATIC, true)
-                addLanguageProperty(STATIC_IMPORT_REFERENCE, referenceName)
+                addLanguageProperty(JAVA_STATIC_IMPORT_REFERENCE, referenceName)
             }.build()
         )
     }

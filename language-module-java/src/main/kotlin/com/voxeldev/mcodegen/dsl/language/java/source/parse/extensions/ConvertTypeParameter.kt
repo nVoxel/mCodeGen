@@ -26,7 +26,7 @@ internal fun convertTypeParameter(psiTypeParameter: PsiTypeParameter): IrTypePar
                 val referencedClassName = referencedClass.qualifiedName ?: return@forEach
                 irTypeParameter.addExtendsType(
                     extendsType = irTypeReference(referencedClassName).apply {
-                        addLanguageProperty(PSI_CLASS, referencedClass)
+                        addLanguageProperty(JAVA_PSI_CLASS, referencedClass)
                     }.build()
                 )
             }
