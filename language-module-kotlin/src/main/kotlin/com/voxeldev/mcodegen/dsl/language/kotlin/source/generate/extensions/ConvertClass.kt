@@ -91,7 +91,7 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
 
         convertFunctions(irClass.methods, this)
 
-        // TODO: convert initializers
+        convertInitializers(irClass.initializers, this)
 
         irClass.nestedClasses.forEach { nestedIrClass ->
             addType(convertClass(irClass = nestedIrClass))

@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
@@ -156,14 +157,14 @@ private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
         )
     }
 
-    val bodyFields = ktClassOrObject.declarations.filterIsInstance<KtProperty>()
-
+    // Convert fields
     convertFieldsAsProperties(
         ktClassOrObject = ktClassOrObject,
-        fields = bodyFields,
+        fields = ktClassOrObject.declarations.filterIsInstance<KtProperty>(),
         irClassBuilder = irClassBuilder,
     )
 
+    // Convert methods
     convertFunctions(
         ktClassOrObject = ktClassOrObject,
         functions = buildList {
@@ -173,6 +174,12 @@ private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
             }
             // addAll(ktClassOrObject.secondaryConstructors) they should also present in declarations
         },
+        irClassBuilder = irClassBuilder,
+    )
+
+    // Convert initializers
+    convertInitializers(
+        initializers = ktClassOrObject.declarations.filterIsInstance<KtClassInitializer>(),
         irClassBuilder = irClassBuilder,
     )
 

@@ -33,17 +33,20 @@ private fun convertInitializer(
                 IrClassInitializer.IrStaticClassInitializerKind
             }
 
-            else -> IrClassInitializer.IrInstanceClassInitializerKind
+            else -> {
+                IrClassInitializer.IrInstanceClassInitializerKind
+            }
         }
-    )
+    ).apply {
+        val irMethodBodyBuilder = irMethodBody()
+        psiClassInitializer.body.statements.forEach { statement ->
+            irMethodBodyBuilder.addStatement(
+                statement = convertStatement(psiStatement = statement),
+            )
+        }
 
-    val irMethodBodyBuilder = irMethodBody()
-    psiClassInitializer.body.statements.forEach { statement ->
-        irMethodBodyBuilder.addStatement(
-            statement = convertStatement(psiStatement = statement),
-        )
-    }
-    initializer.body(irMethodBodyBuilder.build())
+        body(irMethodBodyBuilder.build())
+    }.build()
 
-    return initializer.build()
+    return initializer
 }
