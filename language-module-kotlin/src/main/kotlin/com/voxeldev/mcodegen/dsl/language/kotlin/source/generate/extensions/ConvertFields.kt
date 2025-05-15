@@ -22,7 +22,9 @@ internal fun convertFields(
         val poetProperty = PropertySpec.builder(field.name, convertType(field.type)).apply {
             addModifiers(fieldModifiers)
             mutable(field.isMutable)
-            // initializer()
+            field.initializer?.let { initializer ->
+                initializer(convertStatement(initializer, addLineBreak = false))
+            }
         }
 
         poetClassBuilder.addProperty(poetProperty.build())

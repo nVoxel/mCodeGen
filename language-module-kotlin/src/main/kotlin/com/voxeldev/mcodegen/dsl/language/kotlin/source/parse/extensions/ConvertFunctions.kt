@@ -12,6 +12,7 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irMethod
 import com.voxeldev.mcodegen.dsl.ir.builders.irMethodBody
 import com.voxeldev.mcodegen.dsl.ir.builders.irMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irParameter
+import com.voxeldev.mcodegen.dsl.ir.builders.irReturnStatement
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.internalVisibility
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.privateVisibility
@@ -19,6 +20,7 @@ import com.voxeldev.mcodegen.dsl.language.kotlin.ir.protectedVisibility
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.publicVisibility
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
@@ -140,9 +142,20 @@ private fun convertFunction(
 
     if (ktFunction.hasBody()) {
         val irMethodBodyBuilder = irMethodBody()
-        ktFunction.bodyExpression?.let { body ->
-            irMethodBodyBuilder.addStatement(convertStatement(ktClassOrObject, body))
+
+        val bodyExpression = ktFunction.bodyExpression ?: return irMethodBuilder.build()
+        if (bodyExpression is KtBlockExpression) { // if it's block, take inner statements
+            bodyExpression.statements.forEach { statement ->
+                irMethodBodyBuilder.addStatement(convertStatement(ktClassOrObject, statement))
+            }
+        } else { // otherwise convert it as a single expression (e.g. fun test(): Int = 123)
+            irMethodBodyBuilder.addStatement(
+                irReturnStatement().apply {
+                    expression(convertExpression(ktClassOrObject, bodyExpression))
+                }.build()
+            )
         }
+
         irMethodBuilder.body(irMethodBodyBuilder.build())
     }
 

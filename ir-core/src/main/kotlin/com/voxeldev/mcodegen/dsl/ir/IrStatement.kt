@@ -48,6 +48,7 @@ data class IrVariableDeclarationStatement(
     val name: String,
     val type: IrType,
     val additionalNames: List<String>,
+    val isMutable: Boolean,
     val initializer: IrStatement?,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,

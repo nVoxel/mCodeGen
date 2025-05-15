@@ -2,6 +2,7 @@ package com.voxeldev.mcodegen.dsl.language.kotlin.ir
 
 import com.voxeldev.mcodegen.dsl.ir.IrAnnotation
 import com.voxeldev.mcodegen.dsl.ir.IrBinaryExpression.IrBinaryOperator
+import com.voxeldev.mcodegen.dsl.ir.IrBlockStatement
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrLocation
 import com.voxeldev.mcodegen.dsl.ir.IrParameter
@@ -36,7 +37,7 @@ data class IrLambdaExpression(
     val parameters: List<IrParameter>,
     val returnType: IrType,
     val targetInterfaceType: IrType?,
-    val body: IrStatement,
+    val body: IrBlockStatement,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,

@@ -110,8 +110,6 @@ object KotlinModule : LanguageModule {
         val filePackage = mappedSource.languageProperties["package"] as? String
             ?: throw IllegalStateException("Package not found in the IrFile for Kotlin")
 
-        // TODO: probably imports
-
         val poetFileBuilder = FileSpec.builder(filePackage, source.name.removeSuffix(".kt"))
 
         source.declarations.forEach { declaration ->

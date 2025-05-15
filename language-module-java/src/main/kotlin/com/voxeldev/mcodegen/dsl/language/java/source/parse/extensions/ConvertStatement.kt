@@ -22,6 +22,7 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irVariableDeclarationStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irWhileStatement
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
+import org.jetbrains.kotlin.com.intellij.lang.jvm.JvmModifier
 import org.jetbrains.kotlin.com.intellij.psi.PsiBlockStatement
 import org.jetbrains.kotlin.com.intellij.psi.PsiBreakStatement
 import org.jetbrains.kotlin.com.intellij.psi.PsiContinueStatement
@@ -70,14 +71,16 @@ internal fun convertStatement(
             }
 
             irVariableDeclarationStatement(
-                name = declaredVariables[0].name ?: "Ir:UnnamedVariable",
-                type = convertType(declaredVariables[0].type)
+                name = declaredVariables.first().name ?: "Ir:UnnamedVariable",
+                type = convertType(declaredVariables.first().type)
             ).apply {
                 declaredVariables.drop(1).forEach { variable ->
                     addName(variable.name ?: "Ir:UnnamedVariable")
                 }
 
-                declaredVariables[0].initializer?.let { variableInitializer ->
+                mutable(!declaredVariables.first().hasModifier(JvmModifier.FINAL))
+
+                declaredVariables.first().initializer?.let { variableInitializer ->
                     val initializerExpression = convertExpression(variableInitializer, ignoreConstructorCalls)
                     initializer(initializer = irExpressionStatement(expression = initializerExpression).build())
                 }

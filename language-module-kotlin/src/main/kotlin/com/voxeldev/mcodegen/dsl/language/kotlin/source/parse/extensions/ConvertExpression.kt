@@ -1,5 +1,6 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions
 
+import com.voxeldev.mcodegen.dsl.ir.IrBlockStatement
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
@@ -45,9 +46,11 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.VarargValueArgument
+import org.jetbrains.kotlin.resolve.calls.model.VariableAsFunctionResolvedCall
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 
-const val IDENTIFIER_REFERENCE = "identifierReference"
+const val KT_CLASS_MEMBER_REFERENCE = "ktClassMemberReference"
+const val KT_TOP_LEVEL_MEMBER_REFERENCE = "ktTopLevelMemberReference"
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertExpression(
@@ -74,31 +77,37 @@ internal fun convertExpression(
                 return irTypeReferenceIdentifierExpression(
                     referencedType = irTypeReference(
                         referencedClassName = targetFqName
-                    ).build()
+                    ).apply {
+                        nullable(false)
+                    }.build()
                 ).build()
             }
+
+            val expression = irIdentifierExpression(
+                selector = irLiteralExpression(ktExpression.text).build()
+            )
 
             val targetContainer = target?.containingDeclaration
             val targetContainerFqName = targetContainer?.fqNameSafe?.asString()
 
             // if it's not a class, check its container (class or file), maybe we should import it
-            val identifierReference = if (targetContainer is ClassDescriptor && targetContainerFqName != null
+            if (targetContainer is ClassDescriptor && targetContainerFqName != null
                 && targetContainerFqName != ktClassOrObject.fqName?.asString()
             ) {
-                targetContainerFqName
+                expression.addLanguageProperty(
+                    KT_CLASS_MEMBER_REFERENCE,
+                    targetContainerFqName,
+                )
             } else if (targetContainer is PackageFragmentDescriptor && targetContainerFqName != null
                 && targetContainerFqName != ktClassOrObject.containingKtFile.packageFqName.asString()
             ) {
-                "${targetContainerFqName}.${ktExpression.text}"
-            } else null
+                expression.addLanguageProperty(
+                    KT_TOP_LEVEL_MEMBER_REFERENCE,
+                    targetContainerFqName,
+                )
+            }
 
-            irIdentifierExpression(
-                selector = irLiteralExpression(ktExpression.text).build()
-            ).apply {
-                identifierReference?.let {
-                    addLanguageProperty(IDENTIFIER_REFERENCE, identifierReference)
-                }
-            }.build()
+            expression.build()
         }
 
         is KtDotQualifiedExpression -> {
@@ -133,9 +142,19 @@ internal fun convertExpression(
                 ?: throw IllegalArgumentException("Unable to resolve call of callable expression: ${ktExpression.text}")
             val resolvedCallDescriptor = resolvedCall.resultingDescriptor
 
-            val resolvedCallName = if (resolvedCallDescriptor is ConstructorDescriptor) {
-                resolvedCallDescriptor.constructedClass.fqNameSafe.asString()
-            } else resolvedCallDescriptor.name.asString()
+            val resolvedCallName = when {
+                resolvedCall is VariableAsFunctionResolvedCall -> {
+                    resolvedCall.variableCall.resultingDescriptor.name.asString()
+                }
+
+                resolvedCallDescriptor is ConstructorDescriptor -> {
+                    resolvedCallDescriptor.constructedClass.fqNameSafe.asString()
+                }
+
+                else -> {
+                    resolvedCallDescriptor.name.asString()
+                }
+            }
 
             val arguments = resolvedCallDescriptor.valueParameters.flatMap { param ->
                 val match = resolvedCall.valueArguments[param] ?: return@flatMap listOf()
@@ -283,7 +302,9 @@ internal fun convertExpression(
                 }
 
                 literal.bodyExpression?.let { body ->
-                    body(statement = convertStatement(ktClassOrObject, body))
+                    val bodyBlock = convertStatement(ktClassOrObject, body) as? IrBlockStatement
+                        ?: throw IllegalArgumentException("IrLambdaExpression body should be IrBlockStatement")
+                    body(statement = bodyBlock)
                 }
             }.build()
         }

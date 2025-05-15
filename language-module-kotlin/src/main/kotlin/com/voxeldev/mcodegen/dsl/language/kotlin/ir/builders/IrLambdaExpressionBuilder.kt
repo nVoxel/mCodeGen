@@ -1,5 +1,6 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.ir.builders
 
+import com.voxeldev.mcodegen.dsl.ir.IrBlockStatement
 import com.voxeldev.mcodegen.dsl.ir.IrParameter
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
 import com.voxeldev.mcodegen.dsl.ir.IrType
@@ -19,7 +20,7 @@ class IrLambdaExpressionBuilder() : IrExpressionBuilder() {
     private val parameters: MutableList<IrParameter> = mutableListOf()
     private var returnType: IrType? = null
     private var targetInterfaceType: IrType? = null
-    private var body: IrStatement? = null
+    private var body: IrBlockStatement? = null
 
     fun addParameter(parameter: IrParameter) {
         parameters.add(parameter)
@@ -33,7 +34,7 @@ class IrLambdaExpressionBuilder() : IrExpressionBuilder() {
         targetInterfaceType = type
     }
 
-    fun body(statement: IrStatement) {
+    fun body(statement: IrBlockStatement) {
         body = statement
     }
 

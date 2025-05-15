@@ -1,14 +1,13 @@
-package com.voxeldev.mcodegen.dsl.language.java.source.generate.extensions
+package com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions
 
-import com.squareup.javapoet.CodeBlock
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.joinToCode
 import com.voxeldev.mcodegen.dsl.ir.IrBlockStatement
 import com.voxeldev.mcodegen.dsl.ir.IrBreakStatement
-import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrContinueStatement
 import com.voxeldev.mcodegen.dsl.ir.IrDoWhileStatement
 import com.voxeldev.mcodegen.dsl.ir.IrEmptyStatement
 import com.voxeldev.mcodegen.dsl.ir.IrExpressionStatement
-import com.voxeldev.mcodegen.dsl.ir.IrForStatement
 import com.voxeldev.mcodegen.dsl.ir.IrIfStatement
 import com.voxeldev.mcodegen.dsl.ir.IrReturnStatement
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
@@ -20,14 +19,13 @@ import com.voxeldev.mcodegen.dsl.ir.IrTryCatchStatement
 import com.voxeldev.mcodegen.dsl.ir.IrTryCatchStatement.IrTryCatchStatementClause
 import com.voxeldev.mcodegen.dsl.ir.IrVariableDeclarationStatement
 import com.voxeldev.mcodegen.dsl.ir.IrWhileStatement
-import com.voxeldev.mcodegen.dsl.language.java.JavaModule
+import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_LABEL
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 
-context(JavaModule, ScenarioScope)
+context(KotlinModule, ScenarioScope)
 internal fun convertStatement(
-    containingClass: IrClass,
     irStatement: IrStatement,
-    addSemicolon: Boolean = true,
     addLineBreak: Boolean = true,
     useCodeBlockBrackets: Boolean = true,
 ): CodeBlock {
@@ -36,36 +34,33 @@ internal fun convertStatement(
     when (irStatement) {
         is IrExpressionStatement -> {
             poetCodeBlock.apply {
-                add(convertExpression(containingClass, irStatement.expression))
-                if (addSemicolon) add(";")
+                add(convertExpression(irStatement.expression))
                 if (addLineBreak) add("\n")
             }
         }
 
         is IrVariableDeclarationStatement -> {
             poetCodeBlock.apply {
+                if (irStatement.additionalNames.isNotEmpty()) {
+                    println("Additional names in IrVariableDeclarationStatement are ignored in Kotlin")
+                }
+
                 val declarationCodeBlock = CodeBlock.builder().apply {
-                    val variables = listOf(irStatement.name)
-                        .plus(irStatement.additionalNames)
-                        .map { name -> CodeBlock.of("\$N", name) }
-
-                    if (!irStatement.isMutable) {
-                        add("final ")
+                    if (irStatement.isMutable) {
+                        add("var ")
+                    } else {
+                        add("val ")
                     }
 
-                    add("\$T", convertType(irStatement.type))
+                    add("%N", irStatement.name)
 
-                    if (variables.isNotEmpty()) {
-                        add(" \$L", CodeBlock.join(variables, ", "))
-                    }
+                    add(": %T", convertType(irStatement.type))
 
                     irStatement.initializer?.let { initializer ->
                         add(
-                            " = \$L",
+                            " = %L",
                             convertStatement(
-                                containingClass = containingClass,
                                 irStatement = initializer,
-                                addSemicolon = false,
                                 addLineBreak = false,
                             )
                         )
@@ -73,7 +68,6 @@ internal fun convertStatement(
                 }.build()
 
                 add(declarationCodeBlock)
-                if (addSemicolon) add(";")
                 if (addLineBreak) add("\n")
             }
         }
@@ -81,11 +75,12 @@ internal fun convertStatement(
         is IrBlockStatement -> {
             poetCodeBlock.apply {
                 if (useCodeBlockBrackets) add("{")
-                add("\n\$>")
+                add("\n")
+                indent()
                 irStatement.statements.forEach { blockStatement ->
-                    add(convertStatement(containingClass, blockStatement))
+                    add(convertStatement(blockStatement))
                 }
-                add("\$<")
+                unindent()
                 if (useCodeBlockBrackets) add("}")
                 if (addLineBreak) add("\n")
             }
@@ -93,66 +88,29 @@ internal fun convertStatement(
 
         is IrIfStatement -> {
             poetCodeBlock.apply {
-                add("if (\$L) ", convertExpression(containingClass, irStatement.condition))
+                add("if (%L) ", convertExpression(irStatement.condition))
                 add(
                     convertStatement(
-                        containingClass,
                         irStatement.thenStatement,
-                        addLineBreak = irStatement.thenStatement !is IrBlockStatement
-                                || irStatement.elseStatement == null,
+                        addLineBreak = irStatement.elseStatement == null,
                     )
                 )
                 irStatement.elseStatement?.let { elseStatement ->
-                    if (irStatement.thenStatement is IrBlockStatement) {
-                        add(" ")
-                    }
-                    add("else ")
-                    add(convertStatement(containingClass, elseStatement))
+                    add(" else ")
+                    add(convertStatement(elseStatement))
                 }
             }
         }
 
-        is IrForStatement -> {
-            poetCodeBlock.apply {
-                add("for (")
-                irStatement.initializer?.let { initializer ->
-                    val addDividers = irStatement.condition != null || irStatement.update != null
-                    add(
-                        "\$L",
-                        convertStatement(
-                            containingClass,
-                            initializer,
-                            addLineBreak = false,
-                            addSemicolon = addDividers,
-                        )
-                    )
-                    if (addDividers) {
-                        add(" ")
-                    }
-                }
-
-                irStatement.condition?.let { condition ->
-                    add("\$L", convertExpression(containingClass, condition))
-                    if (irStatement.update != null) {
-                        add("; ")
-                    }
-                }
-
-                irStatement.update?.let { update ->
-                    add("\$L", convertStatement(containingClass, update, addLineBreak = false, addSemicolon = false))
-                }
-
-                add(") ")
-                add(convertStatement(containingClass, irStatement.body))
-            }
-        }
+        // TODO: think of compatibility Java <--> Kotlin <--> Swift
+        // is IrForStatement ->
 
         is IrWhileStatement -> {
             poetCodeBlock.apply {
                 add(
-                    "while (\$L) \$L",
-                    convertExpression(containingClass, irStatement.condition),
-                    convertStatement(containingClass, irStatement.body),
+                    "while (%L) %L",
+                    convertExpression(irStatement.condition),
+                    convertStatement(irStatement.body),
                 )
             }
         }
@@ -160,20 +118,21 @@ internal fun convertStatement(
         is IrDoWhileStatement -> {
             poetCodeBlock.apply {
                 add(
-                    "do \$L while (\$L)",
-                    convertStatement(containingClass, irStatement.body, addSemicolon = true, addLineBreak = false),
-                    convertExpression(containingClass, irStatement.condition),
+                    "do %L while (%L)",
+                    convertStatement(irStatement.body, addLineBreak = false),
+                    convertExpression(irStatement.condition),
                 )
-                if (addSemicolon) add(";")
                 if (addLineBreak) add("\n")
             }
         }
 
         is IrSwitchStatement -> {
             poetCodeBlock.apply {
-                add("switch (\$L) {\n\$>", convertExpression(containingClass, irStatement.expression))
-                add(convertSwitchStatementCases(containingClass, irStatement.cases))
-                add("\$<}")
+                add("when (%L) {\n", convertExpression(irStatement.expression))
+                indent()
+                add(convertSwitchStatementCases(irStatement.cases))
+                unindent()
+                add("}")
                 if (addLineBreak) add("\n")
             }
         }
@@ -181,10 +140,16 @@ internal fun convertStatement(
         is IrReturnStatement -> {
             poetCodeBlock.apply {
                 add("return")
-                irStatement.expression?.let { returnExpression ->
-                    add(" \$L", convertExpression(containingClass, returnExpression))
+
+                val returnLabel = irStatement.languageProperties[KT_LABEL] as? String
+                returnLabel?.let {
+                    add(returnLabel)
                 }
-                if (addSemicolon) add(";")
+
+                irStatement.expression?.let { returnExpression ->
+                    add(" %L", convertExpression(returnExpression))
+                }
+
                 if (addLineBreak) add("\n")
             }
         }
@@ -192,7 +157,6 @@ internal fun convertStatement(
         is IrBreakStatement -> {
             poetCodeBlock.apply {
                 add("break")
-                if (addSemicolon) add(";")
                 if (addLineBreak) add("\n")
             }
         }
@@ -200,15 +164,13 @@ internal fun convertStatement(
         is IrContinueStatement -> {
             poetCodeBlock.apply {
                 add("continue")
-                if (addSemicolon) add(";")
                 if (addLineBreak) add("\n")
             }
         }
 
         is IrThrowStatement -> {
             poetCodeBlock.apply {
-                add("throw \$L", convertExpression(containingClass, irStatement.expression))
-                if (addSemicolon) add(";")
+                add("throw %L", convertExpression(irStatement.expression))
                 if (addLineBreak) add("\n")
             }
         }
@@ -216,19 +178,19 @@ internal fun convertStatement(
         is IrTryCatchStatement -> {
             poetCodeBlock.apply {
                 if (irStatement.tryBlock !is IrBlockStatement) {
-                    throw IllegalArgumentException("Try-catch statement in Java accepts only block statement as a try body")
+                    throw IllegalArgumentException("Try-catch statement in Kotlin accepts only block statement as a try body")
                 }
 
                 if (irStatement.finallyBlock != null && irStatement.finallyBlock !is IrBlockStatement) {
-                    throw IllegalArgumentException("Try-catch statement in Java accepts only block statement as a finally body")
+                    throw IllegalArgumentException("Try-catch statement in Kotlin accepts only block statement as a finally body")
                 }
 
-                add("try \$L", convertStatement(containingClass, irStatement.tryBlock, addLineBreak = false))
+                add("try %L", convertStatement(irStatement.tryBlock, addLineBreak = false))
 
-                add(convertTryCatchStatementClauses(containingClass, irStatement.catchClauses))
+                add(convertTryCatchStatementClauses(irStatement.catchClauses))
 
                 irStatement.finallyBlock?.let { irFinallyStatement ->
-                    add(" finally \$L", convertStatement(containingClass, irFinallyStatement, addLineBreak = false))
+                    add(" finally %L", convertStatement(irFinallyStatement, addLineBreak = false))
                 }
 
                 if (addLineBreak) add("\n")
@@ -245,7 +207,6 @@ internal fun convertStatement(
                 representation?.let {
                     return poetCodeBlock.apply {
                         add(representation.representation)
-                        if (addSemicolon) add(";")
                         if (addLineBreak) add("\n")
                     }.build()
                 }
@@ -257,52 +218,48 @@ internal fun convertStatement(
     return poetCodeBlock.build()
 }
 
-context(JavaModule, ScenarioScope)
+context(KotlinModule, ScenarioScope)
 private fun convertSwitchStatementCases(
-    containingClass: IrClass,
     cases: List<IrSwitchStatementCase>,
 ): CodeBlock {
     return CodeBlock.builder().apply {
         cases.forEach { switchStatementCase ->
             if (switchStatementCase.matchExpressions.isNotEmpty()) {
-                add("case ")
-
                 val matchExpressions = switchStatementCase.matchExpressions.map { matchExpression ->
-                    convertExpression(containingClass, matchExpression)
+                    convertExpression(matchExpression)
                 }
-                add(CodeBlock.join(matchExpressions, ", "))
+                add(matchExpressions.joinToCode(separator = ", "))
 
-                add(":")
+                add(" -> ")
             } else {
-                add("default:")
+                add("else -> ")
             }
 
             switchStatementCase.body?.let { body ->
-                add(convertStatement(containingClass, body, useCodeBlockBrackets = false))
+                add(convertStatement(body))
             }
         }
     }.build()
 }
 
-context(JavaModule, ScenarioScope)
+context(KotlinModule, ScenarioScope)
 private fun convertTryCatchStatementClauses(
-    containingClass: IrClass,
     clauses: List<IrTryCatchStatementClause>,
 ): CodeBlock {
     return CodeBlock.builder().apply {
         clauses.forEach { tryCatchStatementClause ->
             if (tryCatchStatementClause.body != null && tryCatchStatementClause.body !is IrBlockStatement) {
-                throw IllegalArgumentException("Try-catch statement in Java accepts only block statement as a clause body")
+                throw IllegalArgumentException("Try-catch statement in Kotlin accepts only block statement as a clause body")
             }
 
             add(
-                " catch (\$T \$L) ",
-                convertType(tryCatchStatementClause.exceptionType),
+                " catch (%L: %T) ",
                 tryCatchStatementClause.exceptionName ?: "e",
+                convertType(tryCatchStatementClause.exceptionType),
             )
 
             tryCatchStatementClause.body?.let { irBodyStatement ->
-                add(convertStatement(containingClass, irBodyStatement, addLineBreak = false))
+                add(convertStatement(irBodyStatement, addLineBreak = false))
             }
         }
     }.build()

@@ -84,7 +84,7 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
             ?.filterIsInstance<IrParameter>()
             ?.forEach { superClassConstructorParam ->
                 val value = superClassConstructorParam.defaultValue ?: return@forEach
-                // addSuperclassConstructorParameter() // TODO: convert expression
+                addSuperclassConstructorParameter(convertExpression(value))
             }
 
         convertFields(irClass.fields, this)

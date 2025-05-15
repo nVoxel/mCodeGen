@@ -112,6 +112,7 @@ class IrVariableDeclarationStatementBuilder(
     private val type: IrType,
 ) : IrStatementBuilder() {
     private var additionalNames: MutableList<String> = mutableListOf()
+    private var isMutable: Boolean = true
     private var initializer: IrStatement? = null
 
     fun addName(additionalName: String) {
@@ -122,12 +123,17 @@ class IrVariableDeclarationStatementBuilder(
         this.initializer = initializer
     }
 
+    fun mutable(mutable: Boolean) {
+        isMutable = mutable
+    }
+
     fun build(): IrVariableDeclarationStatement {
         val properties = buildStatementProperties()
         return IrVariableDeclarationStatement(
             name = name,
             type = type,
             additionalNames = additionalNames,
+            isMutable = isMutable,
             initializer = initializer,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,

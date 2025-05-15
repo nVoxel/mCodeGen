@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 
 const val KT_LABEL = "ktLabel"
 
-// because there are no statements in the Kt PSI, we accept expression here
+// because there are no statements in Kotlin, we accept expression here
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertStatement(
     ktClassOrObject: KtClassOrObject,
@@ -46,14 +46,6 @@ internal fun convertStatement(
 ): IrStatement {
     // try all the statements except IrExpressionStatement
     when (ktExpression) {
-        is KtBlockExpression -> {
-            return irBlockStatement().apply {
-                ktExpression.statements.forEach { innerStatement ->
-                    addStatement(convertStatement(ktClassOrObject, innerStatement))
-                }
-            }.build()
-        }
-
         is KtProperty -> {
             val propertyAsField = convertFieldAsProperty(ktClassOrObject, ktExpression)
                 ?: throw IllegalArgumentException("Got variable declaration statement without variables")
@@ -62,8 +54,18 @@ internal fun convertStatement(
                 name = propertyAsField.name,
                 type = propertyAsField.type,
             ).apply {
+                mutable(propertyAsField.isMutable)
+
                 propertyAsField.initializer?.let { initializer ->
                     initializer(initializer)
+                }
+            }.build()
+        }
+
+        is KtBlockExpression -> {
+            return irBlockStatement().apply {
+                ktExpression.statements.forEach { innerStatement ->
+                    addStatement(convertStatement(ktClassOrObject, innerStatement))
                 }
             }.build()
         }
@@ -79,7 +81,7 @@ internal fun convertStatement(
             }.build()
         }
 
-        // TODO: think of interop with Java and Swift
+        // TODO: think of compatibility Java <--> Kotlin <--> Swift
         // is KtForExpression ->
 
         is KtWhileExpression -> {

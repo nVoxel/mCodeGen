@@ -1,5 +1,6 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions
 
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
@@ -39,7 +40,7 @@ private fun convertFunction(
     irMethod: IrMethod,
 ) : FunSpec {
     val poetFun = if (irMethod is IrConstructor) {
-        FunSpec.constructorBuilder() // TODO: primary constructor can be here?
+        FunSpec.constructorBuilder()
     } else {
         FunSpec.builder(irMethod.name).apply {
             returns(convertType(irMethod.returnType))
@@ -52,7 +53,9 @@ private fun convertFunction(
 
         irMethod.parameters.forEach { parameter ->
             val poetParameter = ParameterSpec.builder(parameter.name, convertType(parameter.type)).apply {
-                // defaultValue()
+                parameter.defaultValue?.let { defaultValue ->
+                    defaultValue(convertExpression(defaultValue))
+                }
             }.build()
 
             addParameter(poetParameter)
@@ -62,15 +65,24 @@ private fun convertFunction(
             addTypeVariable(convertTypeParameter(typeParameter))
         }
 
-        if (irMethod is IrConstructor && irMethod.otherConstructorCall != null) {
-            when (irMethod.otherConstructorCall!!.irMethodCallKind) {
-                IrMethodCallExpression.IrSuperMethodCallKind -> callSuperConstructor() // TODO: args expressions
-                IrMethodCallExpression.IrThisMethodCallKind -> callThisConstructor() // TODO: args expressions
+        val otherConstructorCall = (irMethod as? IrConstructor)?.otherConstructorCall
+        if (otherConstructorCall != null) {
+            val arguments = otherConstructorCall.arguments.map { argument -> convertExpression(argument) }
+
+            when (otherConstructorCall.irMethodCallKind) {
+                IrMethodCallExpression.IrSuperMethodCallKind -> callSuperConstructor(arguments)
+                IrMethodCallExpression.IrThisMethodCallKind -> callThisConstructor(arguments)
                 else -> throw IllegalArgumentException("Got unknown constructor call type")
             }
         }
 
-        // TODO: body
+        irMethod.body?.let { irMethodBody ->
+            val bodyCodeBlock = CodeBlock.builder()
+            irMethodBody.statements.forEach { irBodyStatement ->
+                bodyCodeBlock.add(convertStatement(irBodyStatement))
+            }
+            addCode(bodyCodeBlock.build())
+        }
     }
 
     return poetFun.build()
@@ -90,7 +102,9 @@ private fun convertPrimaryConstructor(
 
             val poetParameter = ParameterSpec.builder(parameter.name, parameterType).apply {
                 addModifiers(fieldModifiers)
-                // defaultValue()
+                parameter.defaultValue?.let { defaultValue ->
+                    defaultValue(convertExpression(defaultValue))
+                }
             }
 
             poetConstructor.addParameter(poetParameter.build())
@@ -120,11 +134,11 @@ private fun getModifiers(irMethod: IrMethod): List<KModifier> {
             is IrVisibilityPublic -> add(KModifier.PUBLIC)
         }
 
-        if (irMethod.languageProperties[KtTokens.ABSTRACT_KEYWORD.value] == true) {
+        if (irMethod.isAbstract) {
             add(KModifier.ABSTRACT)
         }
 
-        if (irMethod.languageProperties[KtTokens.OVERRIDE_KEYWORD.value] == true) {
+        if (irMethod.isOverride) {
             add(KModifier.OVERRIDE)
         }
 
