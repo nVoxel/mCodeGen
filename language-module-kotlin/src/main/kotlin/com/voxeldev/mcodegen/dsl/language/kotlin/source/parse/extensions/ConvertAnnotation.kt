@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertAnnotation(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktAnnotationEntry: KtAnnotationEntry,
 ): IrAnnotation {
     val annotationDescriptor = this@BindingContext.get(BindingContext.ANNOTATION, ktAnnotationEntry)

@@ -41,7 +41,7 @@ const val KT_LABEL = "ktLabel"
 // because there are no statements in Kotlin, we accept expression here
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertStatement(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktExpression: KtExpression,
 ): IrStatement {
     // try all the statements except IrExpressionStatement

@@ -17,24 +17,29 @@ internal fun convertFields(
     poetClassBuilder: TypeSpec.Builder,
 ) {
     irFields.forEach { irField ->
-        val fieldModifiers = getModifiers(irField)
+        poetClassBuilder.addProperty(
+            convertField(irField)
+        )
+    }
+}
 
-        val poetProperty = PropertySpec.builder(irField.name, convertType(irField.type)).apply {
-            addModifiers(fieldModifiers)
+context(KotlinModule, ScenarioScope)
+internal fun convertField(irField: IrField): PropertySpec {
+    val fieldModifiers = getModifiers(irField)
 
-            mutable(irField.isMutable)
+    return PropertySpec.builder(irField.name, convertType(irField.type)).apply {
+        addModifiers(fieldModifiers)
 
-            irField.annotations.forEach { irAnnotation ->
-                addAnnotation(convertAnnotation(irAnnotation))
-            }
+        mutable(irField.isMutable)
 
-            irField.initializer?.let { initializer ->
-                initializer(convertStatement(initializer, addLineBreak = false))
-            }
+        irField.annotations.forEach { irAnnotation ->
+            addAnnotation(convertAnnotation(irAnnotation))
         }
 
-        poetClassBuilder.addProperty(poetProperty.build())
-    }
+        irField.initializer?.let { initializer ->
+            initializer(convertStatement(initializer, addLineBreak = false))
+        }
+    }.build()
 }
 
 context(KotlinModule, ScenarioScope)
@@ -57,6 +62,10 @@ private fun getModifiers(irField: IrField): List<KModifier> {
 
         if (irField.languageProperties[KtTokens.OPEN_KEYWORD.value] == true) {
             add(KModifier.OPEN)
+        }
+
+        if (irField.languageProperties[KtTokens.CONST_KEYWORD.value] == true) {
+            add(KModifier.CONST)
         }
     }
 }

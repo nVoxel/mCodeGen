@@ -19,7 +19,7 @@ const val KT_REIFIED = "reified"
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertTypeParameters(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktTypeParameters: List<KtTypeParameter>,
     irMethodBuilder: IrMethodBuilder,
 ) {
@@ -47,7 +47,7 @@ internal fun convertTypeParameters(
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertTypeParameter(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktTypeParameter: KtTypeParameter,
     preloadedTypeParameters: Map<String, IrGeneric>,
 ): IrTypeParameter {

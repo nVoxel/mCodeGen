@@ -4,10 +4,9 @@ import com.squareup.kotlinpoet.FileSpec
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrField
 import com.voxeldev.mcodegen.dsl.ir.IrFile
+import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.ir.builders.irFile
 import com.voxeldev.mcodegen.dsl.language.base.LanguageModule
-import com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions.convertClass
-import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertClasses
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertImports
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import com.voxeldev.mcodegen.dsl.source.edit.scenario.EditScenario
@@ -15,12 +14,19 @@ import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapper
 import com.voxeldev.mcodegen.dsl.utils.GlobalCompilerUtils
 import com.voxeldev.mcodegen.dsl.utils.GlobalFileUtils
 import com.voxeldev.mcodegen.dsl.utils.GlobalFileUtils.asString
-import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.BindingContext
 import java.io.File
 import kotlin.io.path.Path
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions.convertClass as convertIrClass
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions.convertField as convertIrField
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions.convertFunction as convertIrMethod
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertClass as convertKtClass
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertFieldAsProperty as convertKtField
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertFunction as convertKtFunction
 
 object KotlinModule : LanguageModule {
 
@@ -91,9 +97,37 @@ object KotlinModule : LanguageModule {
         with(bindingContext) {
             convertImports(ktFile.importList, irFileBuilder)
 
-            // TODO: convert top level declarations
+            ktFile.declarations.forEach { declaration ->
+                when (declaration) {
+                    is KtClassOrObject -> {
+                        irFileBuilder.addDeclaration(
+                            convertKtClass(declaration)
+                        )
+                    }
 
-            convertClasses(ktFile.declarations.filterIsInstance<KtClassOrObject>(), irFileBuilder)
+                    is KtFunction -> {
+                        irFileBuilder.addDeclaration(
+                            convertKtFunction(
+                                ktClassOrObject = null,
+                                ktFunction = declaration,
+                            )
+                        )
+                    }
+
+                    is KtProperty -> {
+                        irFileBuilder.addDeclaration(
+                            convertKtField(
+                                ktClassOrObject = null,
+                                ktField = declaration,
+                            ) ?: throw IllegalArgumentException("Found Kotlin top-level field without name")
+                        )
+                    }
+
+                    else -> {
+                        println("Unknown top level declaration: $declaration")
+                    }
+                }
+            }
         }
 
         return irFileBuilder.build()
@@ -115,15 +149,15 @@ object KotlinModule : LanguageModule {
         source.declarations.forEach { declaration ->
             when (declaration) {
                 is IrClass -> {
-                    poetFileBuilder.addType(convertClass(declaration))
+                    poetFileBuilder.addType(convertIrClass(declaration))
                 }
 
-                is IrFunction -> {
-                    // TODO
+                is IrMethod -> {
+                    poetFileBuilder.addFunction(convertIrMethod(declaration))
                 }
 
                 is IrField -> {
-                    // TODO
+                    poetFileBuilder.addProperty(convertIrField(declaration))
                 }
 
                 else -> throw IllegalArgumentException("Unknown top-level declaration for Kotlin")

@@ -5,7 +5,6 @@ import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
-import com.voxeldev.mcodegen.dsl.ir.IrTypeReferenceIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irAssignmentExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irBinaryExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irCastExpression
@@ -55,7 +54,7 @@ const val KT_TOP_LEVEL_MEMBER_REFERENCE = "ktTopLevelMemberReference"
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertExpression(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktExpression: KtExpression?
 ): IrExpression {
     if (ktExpression == null) {
@@ -73,7 +72,7 @@ internal fun convertExpression(
 
             // first, check if the reference is a class (then we should import it)
             if (target is ClassDescriptor && targetFqName != null
-                && targetFqName != ktClassOrObject.fqName?.asString()
+                && targetFqName != ktClassOrObject?.fqName?.asString()
             ) {
                 return irTypeReferenceIdentifierExpression(
                     referencedType = irTypeReference(
@@ -93,14 +92,14 @@ internal fun convertExpression(
 
             // if it's not a class, check its container (class or file), maybe we should import it
             if (targetContainer is ClassDescriptor && targetContainerFqName != null
-                && targetContainerFqName != ktClassOrObject.fqName?.asString()
+                && targetContainerFqName != ktClassOrObject?.fqName?.asString()
             ) {
                 expression.addLanguageProperty(
                     KT_CLASS_MEMBER_REFERENCE,
                     targetContainerFqName,
                 )
             } else if (targetContainer is PackageFragmentDescriptor && targetContainerFqName != null
-                && targetContainerFqName != ktClassOrObject.containingKtFile.packageFqName.asString()
+                && targetContainerFqName != ktClassOrObject?.containingKtFile?.packageFqName?.asString()
             ) {
                 expression.addLanguageProperty(
                     KT_TOP_LEVEL_MEMBER_REFERENCE,
@@ -234,7 +233,9 @@ internal fun convertExpression(
         }
 
         is KtBinaryExpressionWithTypeRHS -> {
-            val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
+            val preloadedTypeParameters = ktClassOrObject?.let {
+                preloadTypeParameters(ktClassOrObject.typeParameters)
+            } ?: emptyMap()
             val targetTypeElement = ktExpression.right?.typeElement
                 ?: throw IllegalArgumentException("Type cast expression type can not be resolved")
 
@@ -245,7 +246,9 @@ internal fun convertExpression(
         }
 
         is KtIsExpression -> {
-            val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
+            val preloadedTypeParameters = ktClassOrObject?.let {
+                preloadTypeParameters(ktClassOrObject.typeParameters)
+            } ?: emptyMap()
             val targetTypeElement = ktExpression.typeReference?.typeElement
                 ?: throw IllegalArgumentException("Type check expression type can not be resolved")
 
@@ -261,7 +264,9 @@ internal fun convertExpression(
                 val functionDescriptor = this@BindingContext.get(BindingContext.FUNCTION, literal)
                     ?: throw java.lang.IllegalArgumentException("Unresolved lambda: ${ktExpression.text}")
 
-                val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
+                val preloadedTypeParameters = ktClassOrObject?.let {
+                    preloadTypeParameters(ktClassOrObject.typeParameters)
+                } ?: emptyMap()
 
                 functionDescriptor.extensionReceiverParameter?.let { receiver ->
 

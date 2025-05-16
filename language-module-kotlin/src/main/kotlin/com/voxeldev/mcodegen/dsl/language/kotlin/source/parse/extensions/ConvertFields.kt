@@ -35,7 +35,7 @@ internal fun convertFieldsAsProperties(
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertFieldAsParameter(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktField: KtParameter,
 ): IrField? {
     val name = ktField.name ?: return null
@@ -62,7 +62,7 @@ internal fun convertFieldAsParameter(
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertFieldAsProperty(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktField: KtProperty,
 ): IrField? {
     val name = ktField.name ?: return null
@@ -118,14 +118,22 @@ private fun convertFieldModifiers(
             KtTokens.OPEN_KEYWORD.value, true
         )
     }
+
+    if (ktField.hasModifier(KtTokens.CONST_KEYWORD)) {
+        irFieldBuilder.addLanguageProperty(
+            KtTokens.CONST_KEYWORD.value, true
+        )
+    }
 }
 
 context(KotlinModule, BindingContext, ScenarioScope)
 private fun convertFieldType(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktField: KtCallableDeclaration,
 ): IrType {
-    val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
+    val preloadedTypeParameters = ktClassOrObject?.let {
+        preloadTypeParameters(ktClassOrObject.typeParameters)
+    } ?: emptyMap()
 
     // try to convert explicit type
     ktField.typeReference?.typeElement?.let { typeElement ->

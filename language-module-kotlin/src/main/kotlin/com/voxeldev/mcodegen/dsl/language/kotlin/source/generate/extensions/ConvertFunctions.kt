@@ -36,7 +36,7 @@ internal fun convertFunctions(
 }
 
 context(KotlinModule, ScenarioScope)
-private fun convertFunction(
+internal fun convertFunction(
     irMethod: IrMethod,
 ) : FunSpec {
     val poetFun = if (irMethod is IrConstructor) {

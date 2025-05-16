@@ -8,7 +8,6 @@ import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrEnumClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrInterfaceClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrSuperClass
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
-import com.voxeldev.mcodegen.dsl.ir.builders.IrFileBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irClass
 import com.voxeldev.mcodegen.dsl.ir.builders.irParameter
 import com.voxeldev.mcodegen.dsl.ir.builders.irSuperClass
@@ -38,14 +37,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
 const val KT_SUPERCLASS_CTOR_PARAMETERS = "ktSuperClassCtorParameters"
 
 context(KotlinModule, BindingContext, ScenarioScope)
-internal fun convertClasses(ktClassesOrObjects: List<KtClassOrObject>, irFileBuilder: IrFileBuilder) {
-    ktClassesOrObjects.forEach { psiClass ->
-        irFileBuilder.addDeclaration(convertClass(psiClass))
-    }
-}
-
-context(KotlinModule, BindingContext, ScenarioScope)
-private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
+internal fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
     val className = ktClassOrObject.fqName?.asString() ?: "Ir:UnnamedClass"
     val classDescriptor = this@BindingContext.get(BindingContext.CLASS, ktClassOrObject)
         ?: throw IllegalArgumentException("Unable to get KtClass descriptor through BindingContext")

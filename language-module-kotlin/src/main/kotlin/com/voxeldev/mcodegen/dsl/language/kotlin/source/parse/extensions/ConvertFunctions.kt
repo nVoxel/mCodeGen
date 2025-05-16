@@ -49,8 +49,8 @@ internal fun convertFunctions(
 }
 
 context(KotlinModule, BindingContext, ScenarioScope)
-private fun convertFunction(
-    ktClassOrObject: KtClassOrObject,
+internal fun convertFunction(
+    ktClassOrObject: KtClassOrObject?,
     ktFunction: KtFunction,
 ): IrMethod {
     val isConstructor = ktFunction is KtPrimaryConstructor || ktFunction is KtSecondaryConstructor
@@ -118,6 +118,10 @@ private fun convertFunction(
     convertTypeParameters(ktClassOrObject, ktFunction.typeParameters, irMethodBuilder)
 
     if (ktFunction is KtSecondaryConstructor && irMethodBuilder is IrConstructorBuilder) {
+        requireNotNull(ktClassOrObject) {
+            "Constructor cannot be top-level declaration"
+        }
+
         val callType = ktFunction.getDelegationCall().calleeExpression?.text
 
         // TODO: support named arguments using BindingContext
@@ -264,11 +268,13 @@ private fun convertPrimaryConstructorFieldModifiers(
 
 context(KotlinModule, BindingContext, ScenarioScope)
 private fun convertFunctionType(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktCallable: KtCallableDeclaration,
     isConstructor: Boolean,
 ): IrType {
-    val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
+    val preloadedTypeParameters = ktClassOrObject?.let {
+        preloadTypeParameters(ktClassOrObject.typeParameters)
+    } ?: emptyMap()
 
     // try to convert explicit type
     ktCallable.typeReference?.typeElement?.let { typeElement ->
@@ -295,10 +301,12 @@ private fun convertFunctionType(
 
 context(KotlinModule, BindingContext, ScenarioScope)
 private fun convertParameterType(
-    ktClassOrObject: KtClassOrObject,
+    ktClassOrObject: KtClassOrObject?,
     ktParameter: KtParameter,
 ): IrType {
-    val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
+    val preloadedTypeParameters = ktClassOrObject?.let {
+        preloadTypeParameters(ktClassOrObject.typeParameters)
+    } ?: emptyMap()
 
     // try to convert explicit type
     ktParameter.typeReference?.typeElement?.let { typeElement ->
