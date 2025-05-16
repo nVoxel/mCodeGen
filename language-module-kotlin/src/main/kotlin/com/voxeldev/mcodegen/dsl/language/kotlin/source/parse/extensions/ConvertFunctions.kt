@@ -81,7 +81,9 @@ private fun convertFunction(
 
     convertFunctionModifiers(ktFunction, irMethodBuilder)
 
-    // TODO: convert annotations
+    ktFunction.annotationEntries.forEach { ktAnnotationEntry ->
+        irMethodBuilder.addAnnotation(convertAnnotation(ktClassOrObject, ktAnnotationEntry))
+    }
 
     ktFunction.valueParameters.forEach { parameter ->
         irMethodBuilder.addParameter(
@@ -92,6 +94,10 @@ private fun convertFunction(
                     ktParameter = parameter,
                 ),
             ).apply {
+                parameter.annotationEntries.forEach { ktAnnotationEntry ->
+                    addAnnotation(convertAnnotation(ktClassOrObject, ktAnnotationEntry))
+                }
+
                 parameter.defaultValue?.let { defaultValue ->
                     defaultValue(convertExpression(ktClassOrObject, defaultValue))
                 }

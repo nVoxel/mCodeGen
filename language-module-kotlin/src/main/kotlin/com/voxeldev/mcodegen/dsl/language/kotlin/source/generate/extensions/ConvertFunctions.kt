@@ -53,6 +53,10 @@ private fun convertFunction(
 
         irMethod.parameters.forEach { parameter ->
             val poetParameter = ParameterSpec.builder(parameter.name, convertType(parameter.type)).apply {
+                parameter.annotations.forEach { irAnnotation ->
+                    addAnnotation(convertAnnotation(irAnnotation))
+                }
+
                 parameter.defaultValue?.let { defaultValue ->
                     defaultValue(convertExpression(defaultValue))
                 }
@@ -95,6 +99,7 @@ private fun convertPrimaryConstructor(
 ) {
     if (irConstructor.parameters.isNotEmpty()) {
         val poetConstructor = FunSpec.constructorBuilder()
+
         irConstructor.parameters.forEach { parameter ->
             val parameterType = convertType(parameter.type)
 
@@ -102,6 +107,11 @@ private fun convertPrimaryConstructor(
 
             val poetParameter = ParameterSpec.builder(parameter.name, parameterType).apply {
                 addModifiers(fieldModifiers)
+
+                parameter.annotations.forEach { irAnnotation ->
+                    addAnnotation(convertAnnotation(irAnnotation))
+                }
+
                 parameter.defaultValue?.let { defaultValue ->
                     defaultValue(convertExpression(defaultValue))
                 }

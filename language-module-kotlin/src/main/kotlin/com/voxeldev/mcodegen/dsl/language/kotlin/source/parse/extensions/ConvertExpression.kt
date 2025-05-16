@@ -5,6 +5,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
+import com.voxeldev.mcodegen.dsl.ir.IrTypeReferenceIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irAssignmentExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irBinaryExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irCastExpression
@@ -130,9 +131,13 @@ internal fun convertExpression(
                 )
             }
 
-            // otherwise return it as a literal
+            // otherwise return it as an identifier
             println("Returning fallback in KtDotQualifiedExpression")
-            irLiteralExpression(ktExpression.text).build()
+            irIdentifierExpression(
+                selector = irLiteralExpression(ktExpression.selectorExpression?.text.toString()).build()
+            ).apply {
+                qualifier(qualifier)
+            }.build()
         }
 
         is KtCallExpression -> {

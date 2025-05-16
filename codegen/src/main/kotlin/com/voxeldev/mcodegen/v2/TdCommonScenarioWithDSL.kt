@@ -2,7 +2,6 @@ package com.voxeldev.mcodegen.v2
 
 import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.scenario.appendJavaInterfacesEditScenario
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import com.voxeldev.mcodegen.dsl.scenario.baseScenario

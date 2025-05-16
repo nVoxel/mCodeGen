@@ -49,7 +49,9 @@ internal fun convertFieldAsParameter(
 
     irFieldBuilder.mutable(isMutable = ktField.valOrVarKeyword?.text != KtTokens.VAL_KEYWORD.value)
 
-    // TODO: convert annotations
+    ktField.annotationEntries.forEach { ktAnnotationEntry ->
+        irFieldBuilder.addAnnotation(convertAnnotation(ktClassOrObject, ktAnnotationEntry))
+    }
 
     ktField.defaultValue?.let { defaultValue ->
         irFieldBuilder.initializer(convertStatement(ktClassOrObject, defaultValue))
@@ -74,7 +76,9 @@ internal fun convertFieldAsProperty(
 
     irFieldBuilder.mutable(isMutable = ktField.isVar)
 
-    // TODO: convert annotations
+    ktField.annotationEntries.forEach { ktAnnotationEntry ->
+        irFieldBuilder.addAnnotation(convertAnnotation(ktClassOrObject, ktAnnotationEntry))
+    }
 
     ktField.initializer?.let { initializer ->
         irFieldBuilder.initializer(convertStatement(ktClassOrObject, initializer))

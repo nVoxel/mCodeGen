@@ -115,7 +115,9 @@ private fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
         )
     }
 
-    // TODO: convert annotations
+    ktClassOrObject.annotationEntries.forEach { ktAnnotationEntry ->
+        irClassBuilder.addAnnotation(convertAnnotation(ktClassOrObject, ktAnnotationEntry))
+    }
 
     convertTypeParameters(ktClassOrObject, ktClassOrObject.typeParameters, irClassBuilder)
 

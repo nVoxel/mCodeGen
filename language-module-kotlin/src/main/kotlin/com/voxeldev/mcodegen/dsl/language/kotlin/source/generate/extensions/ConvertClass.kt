@@ -71,7 +71,9 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
             addModifiers(KModifier.SEALED)
         }
 
-        // TODO: convert annotations
+        irClass.annotations.forEach { irAnnotation ->
+            addAnnotation(convertAnnotation(irAnnotation))
+        }
 
         irClass.typeParameters.forEach { irTypeParameter ->
             addTypeVariable(convertTypeParameter(irTypeParameter))

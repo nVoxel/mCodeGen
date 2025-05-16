@@ -2,7 +2,6 @@ package com.voxeldev.mcodegen.dsl.language.kotlin.ir.builders
 
 import com.voxeldev.mcodegen.dsl.ir.IrBlockStatement
 import com.voxeldev.mcodegen.dsl.ir.IrParameter
-import com.voxeldev.mcodegen.dsl.ir.IrStatement
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.builders.IrExpressionBuilder
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrLambdaExpression

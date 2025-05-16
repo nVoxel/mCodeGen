@@ -16,13 +16,19 @@ internal fun convertFields(
     irFields: List<IrField>,
     poetClassBuilder: TypeSpec.Builder,
 ) {
-    irFields.forEach { field ->
-        val fieldModifiers = getModifiers(field)
+    irFields.forEach { irField ->
+        val fieldModifiers = getModifiers(irField)
 
-        val poetProperty = PropertySpec.builder(field.name, convertType(field.type)).apply {
+        val poetProperty = PropertySpec.builder(irField.name, convertType(irField.type)).apply {
             addModifiers(fieldModifiers)
-            mutable(field.isMutable)
-            field.initializer?.let { initializer ->
+
+            mutable(irField.isMutable)
+
+            irField.annotations.forEach { irAnnotation ->
+                addAnnotation(convertAnnotation(irAnnotation))
+            }
+
+            irField.initializer?.let { initializer ->
                 initializer(convertStatement(initializer, addLineBreak = false))
             }
         }
