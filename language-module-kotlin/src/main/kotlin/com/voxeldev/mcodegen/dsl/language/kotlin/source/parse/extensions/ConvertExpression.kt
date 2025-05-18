@@ -4,7 +4,10 @@ import com.voxeldev.mcodegen.dsl.ir.IrBlockStatement
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
 import com.voxeldev.mcodegen.dsl.ir.IrIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
+import com.voxeldev.mcodegen.dsl.ir.IrObjectCreationExpression
 import com.voxeldev.mcodegen.dsl.ir.IrStringRepresentation
+import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
+import com.voxeldev.mcodegen.dsl.ir.IrTypeReferenceIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irAssignmentExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irBinaryExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irCastExpression
@@ -21,6 +24,7 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irUnaryExpression
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule.languageName
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.builders.irLambdaExpression
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.builders.irNullSafeExpression
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.builders.irParenthesizedExpression
 import com.voxeldev.mcodegen.dsl.language.kotlin.utils.getLeft
 import com.voxeldev.mcodegen.dsl.language.kotlin.utils.getRight
@@ -28,6 +32,7 @@ import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
+import org.jetbrains.kotlin.descriptors.isTopLevelInPackage
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -35,13 +40,17 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtIsExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
 import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtPrefixExpression
+import org.jetbrains.kotlin.psi.KtSafeQualifiedExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtUnaryExpression
+import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
@@ -51,6 +60,8 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 
 const val KT_CLASS_MEMBER_REFERENCE = "ktClassMemberReference"
 const val KT_TOP_LEVEL_MEMBER_REFERENCE = "ktTopLevelMemberReference"
+
+const val KT_SAFE_TYPE_CAST = "ktSafeTypeCast"
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertExpression(
@@ -130,6 +141,12 @@ internal fun convertExpression(
                 )
             }
 
+            // no need for the TypeReferenceIdentifier, as we already
+            // store qualified class name in the IrObjectCreationExpression
+            if (qualifier is IrTypeReferenceIdentifierExpression && selector is IrObjectCreationExpression) {
+                return selector
+            }
+
             // otherwise return it as an identifier
             println("Returning fallback in KtDotQualifiedExpression")
             irIdentifierExpression(
@@ -160,7 +177,7 @@ internal fun convertExpression(
                 }
             }
 
-            val arguments = resolvedCallDescriptor.valueParameters.flatMap { param ->
+            val valueArguments = resolvedCallDescriptor.valueParameters.flatMap { param ->
                 val match = resolvedCall.valueArguments[param] ?: return@flatMap listOf()
 
                 when (match) {
@@ -191,16 +208,39 @@ internal fun convertExpression(
                 }
             }
 
+            val typeArguments = ktExpression.typeArgumentList?.arguments.orEmpty().mapNotNull { argument ->
+                argument.typeReference?.let { typeRef ->
+                    val preloadedTypeParameters = ktClassOrObject?.let {
+                        preloadAllTypeParameters(ktClassOrObject, ktExpression)
+                    }.orEmpty()
+
+                    val ktType = this@BindingContext.get(BindingContext.TYPE, typeRef) ?: return@let null
+                    convertKotlinType(ktType, preloadedTypeParameters) // TODO: preload type params
+                }
+            }
+
             if (resolvedCallDescriptor is ConstructorDescriptor) {
                 irObjectCreationExpression(resolvedCallName).apply {
-                    arguments.forEach { argument ->
+                    valueArguments.forEach { argument ->
                         addConstructorArg(argument)
                     }
                 }.build()
             } else {
                 irMethodCallExpression(methodName = resolvedCallName).apply {
-                    arguments.forEach { argument ->
-                        addArgument(argument)
+                    valueArguments.forEach { valueArgument ->
+                        addValueArgument(valueArgument)
+                    }
+
+                    typeArguments.forEach { typeArgument ->
+                        addTypeArgument(typeArgument)
+                    }
+
+                    val targetContainerFqName = resolvedCallDescriptor.containingDeclaration.fqNameSafe.asString()
+                    if (resolvedCallDescriptor.isTopLevelInPackage(resolvedCallName, targetContainerFqName)) {
+                        addLanguageProperty(
+                            KT_TOP_LEVEL_MEMBER_REFERENCE,
+                            targetContainerFqName,
+                        )
                     }
                 }.build()
             }
@@ -234,21 +274,28 @@ internal fun convertExpression(
 
         is KtBinaryExpressionWithTypeRHS -> {
             val preloadedTypeParameters = ktClassOrObject?.let {
-                preloadTypeParameters(ktClassOrObject.typeParameters)
-            } ?: emptyMap()
+                preloadAllTypeParameters(ktClassOrObject, ktExpression)
+            }.orEmpty()
             val targetTypeElement = ktExpression.right?.typeElement
                 ?: throw IllegalArgumentException("Type cast expression type can not be resolved")
+
+            val token = (ktExpression.operationReference as? KtOperationReferenceExpression)
+                ?.operationSignTokenType?.value
 
             irCastExpression(
                 expression = convertExpression(ktClassOrObject, ktExpression.left),
                 targetType = convertKtTypeElement(targetTypeElement, preloadedTypeParameters),
-            ).build()
+            ).apply {
+                if (token == "AS_SAFE") {
+                    addLanguageProperty(KT_SAFE_TYPE_CAST, true)
+                }
+            }.build()
         }
 
         is KtIsExpression -> {
             val preloadedTypeParameters = ktClassOrObject?.let {
-                preloadTypeParameters(ktClassOrObject.typeParameters)
-            } ?: emptyMap()
+                preloadAllTypeParameters(ktClassOrObject, ktExpression)
+            }.orEmpty()
             val targetTypeElement = ktExpression.typeReference?.typeElement
                 ?: throw IllegalArgumentException("Type check expression type can not be resolved")
 
@@ -265,8 +312,8 @@ internal fun convertExpression(
                     ?: throw java.lang.IllegalArgumentException("Unresolved lambda: ${ktExpression.text}")
 
                 val preloadedTypeParameters = ktClassOrObject?.let {
-                    preloadTypeParameters(ktClassOrObject.typeParameters)
-                } ?: emptyMap()
+                    preloadAllTypeParameters(ktClassOrObject, ktExpression)
+                }.orEmpty()
 
                 functionDescriptor.extensionReceiverParameter?.let { receiver ->
 
@@ -325,6 +372,17 @@ internal fun convertExpression(
             } ?: getFallbackExpression(ktExpression)
         }
 
+        is KtSafeQualifiedExpression -> {
+            val receiver = ktExpression.receiverExpression
+            val selector = ktExpression.selectorExpression
+                ?: throw IllegalArgumentException("Got KtSafeQualifiedExpression without selector")
+
+            irNullSafeExpression(
+                receiver = convertExpression(ktClassOrObject, receiver),
+                selector = convertExpression(ktClassOrObject, selector),
+            ).build()
+        }
+
         else -> getFallbackExpression(ktExpression)
     }
 }
@@ -335,4 +393,16 @@ private fun getFallbackExpression(ktExpression: KtExpression): IrExpression {
             IrStringRepresentation(languageName, ktExpression.text)
         )
     }.build()
+}
+
+context(KotlinModule, BindingContext, ScenarioScope)
+private fun preloadAllTypeParameters(
+    ktClassOrObject: KtClassOrObject?,
+    ktExpression: KtExpression,
+): Map<String, IrTypeGeneric> {
+    val containingFunction = ktExpression.getStrictParentOfType<KtFunction>()
+    return preloadTypeParameters(ktClassOrObject?.typeParameters ?: emptyList()).plus(
+        containingFunction?.let { preloadTypeParameters(containingFunction.typeParameters) }
+            .orEmpty()
+    )
 }

@@ -26,6 +26,7 @@ object JavaModule : LanguageModule {
     private const val JAVA_INDENT_PROPERTY_DEFAULT_VALUE = "    "
 
     const val JAVA_PSI_CLASS = "psi_class"
+    const val JAVA_FILE_PACKAGE = "package"
 
     override val languageName: String = "java"
 
@@ -39,7 +40,7 @@ object JavaModule : LanguageModule {
         val psiFile = GlobalFileUtils.parseJavaFile(codeString, fileName)
         val irFileBuilder = irFile(fileName)
 
-        irFileBuilder.addLanguageProperty("package", psiFile.packageName)
+        irFileBuilder.addLanguageProperty(JAVA_FILE_PACKAGE, psiFile.packageName)
 
         psiFile.importList?.let { psiImports -> convertImports(psiImports, irFileBuilder) }
 
@@ -56,7 +57,7 @@ object JavaModule : LanguageModule {
     ) {
         val mappedSource = mappers.fold(source) { acc, mapper -> mapper.map(acc) }
 
-        val filePackage = mappedSource.languageProperties["package"] as? String
+        val filePackage = mappedSource.languageProperties[JAVA_FILE_PACKAGE] as? String
             ?: throw IllegalStateException("Package not found in the IrFile for Java")
 
         val staticImports = mappedSource.imports.filter { import ->

@@ -74,7 +74,7 @@ internal fun convertExpression(
 
                 add(
                     CodeBlock.join(
-                        irExpression.arguments.map { argument -> convertExpression(containingClass, argument) },
+                        irExpression.valueArguments.map { argument -> convertExpression(containingClass, argument) },
                         ", "
                     )
                 )

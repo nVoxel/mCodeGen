@@ -10,9 +10,13 @@ import com.voxeldev.mcodegen.dsl.scenario.manager.baseScenarioManager
 import com.voxeldev.mcodegen.dsl.scenario.manager.configuration.scenarioManagerConfiguration
 import com.voxeldev.mcodegen.dsl.utils.source.unify.UnifyClassesStrategyByNameAndFields
 import com.voxeldev.mcodegen.dsl.utils.source.unify.unifySourcesList
+import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.scenario.appendJavaInterfacesEditScenario
 import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AddJavaGettersEditStepHandler
 import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AddJavaImportEditStepHandler
 import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AppendJavaInterfacesEditStepHandler
+import com.voxeldev.mcodegen.v2.dsl.utils.source.generate.mapper.kmpCommonInterfacesMapper
+import com.voxeldev.mcodegen.v2.dsl.utils.source.generate.mapper.kmpInstanceGetterImplsMapper
+import com.voxeldev.mcodegen.v2.dsl.utils.source.generate.mapper.kmpInstanceGettersKoinModulesMapper
 
 fun main() {
     val scenarioManager = baseScenarioManager()
@@ -32,25 +36,25 @@ fun main() {
     ) {
         val androidSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiAndroid.java")
         val desktopSourceIR : IrFile = JavaModule.parse(sourcePath = "TdApiDesktop.java")
+        // val iosSourceIR : IR = SwiftModule.parse(sourcePath = "path/to/ios/source/file.swift")
 
         runJavaTests()
         runKotlinTests()
-
-        // val iosSourceIR : IR = SwiftModule.parse(sourcePath = "path/to/ios/source/file.swift")
 
         val commonClasses = unifySourcesList(
             strategy = UnifyClassesStrategyByNameAndFields(),
             androidSourceIR, desktopSourceIR, /*iosSourceIR*/
         )
 
-        /*KotlinModule.generate(
+        KotlinModule.generate(
             source = commonClasses,
+            applyToBasePath = "common",
             mappers = listOf(kmpCommonInterfacesMapper()),
         )
 
         KotlinModule.generate(
             source = commonClasses,
-            applyToBasePath = "android"
+            applyToBasePath = "android",
             mappers = listOf(kmpInstanceGetterImplsMapper()),
         )
 
@@ -60,14 +64,14 @@ fun main() {
             mappers = listOf(kmpInstanceGetterImplsMapper()),
         )
 
-        KotlinModule.generate(
-            source = commonClasses,
+        KotlinModule.generateMultiple(
+            sources = listOf(commonClasses),
             applyToBasePath = "android",
             mappers = listOf(kmpInstanceGettersKoinModulesMapper()),
         )
 
-        KotlinModule.generate(
-            source = commonClasses,
+        KotlinModule.generateMultiple(
+            sources = listOf(commonClasses),
             applyToBasePath = "desktop",
             mappers = listOf(kmpInstanceGettersKoinModulesMapper()),
         )
@@ -82,7 +86,7 @@ fun main() {
             editScenario = appendJavaInterfacesEditScenario(commonClasses),
         )
 
-        SwiftModule.edit(
+        /*SwiftModule.edit(
             sourcePath = "path/to/ios/source/file.swift",
             editScenario = appendSwiftInterfacesEditScenario(),
         )*/
@@ -127,6 +131,7 @@ private fun runKotlinTests() {
         "testInitializersIR" to "test_kotlin_initializers.kt",
         "testAnnotationsIR" to "test_kotlin_annotations.kt",
         "testGenericsIR" to "test_kotlin_generic.kt",
+        "testCastIR" to "test_kotlin_cast.kt",
     )
 
     val testStatementsIR by kotlinTests
@@ -152,11 +157,7 @@ private fun runKotlinTests() {
 
     val testGenericsIR by kotlinTests
     KotlinModule.generate(testGenericsIR, "test", listOf())
-}
 
-/*
-class UnifyStrategyByNameAndMethods : UnifySourcesStrategy {
-    override fun unify(sources: List<SourceIR>): SourceIR {
-        // Implement the logic to unify the sources
-    }
-}*/
+    val testCastIR by kotlinTests
+    KotlinModule.generate(testCastIR, "test", listOf())
+}

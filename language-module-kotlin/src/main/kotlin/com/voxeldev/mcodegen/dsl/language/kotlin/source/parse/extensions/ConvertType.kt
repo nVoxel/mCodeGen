@@ -1,10 +1,10 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions
 
-import com.voxeldev.mcodegen.dsl.ir.IrGeneric
+import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
-import com.voxeldev.mcodegen.dsl.ir.builders.irFunctionType
+import com.voxeldev.mcodegen.dsl.ir.builders.irTypeFunction
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeReference
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
@@ -51,7 +51,7 @@ private val primitiveFqNames = mapOf(
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertKotlinType(
     kotlinType: KotlinType,
-    preloadedTypeParameters: Map<String, IrGeneric>,
+    preloadedTypeParameters: Map<String, IrTypeGeneric>,
     isNullable: Boolean = kotlinType.isMarkedNullable,
 ): IrType {
 
@@ -73,7 +73,7 @@ internal fun convertKotlinType(
             preloadedTypeParameters = preloadedTypeParameters
         )
 
-        return irFunctionType(paramIr, returnIr).apply { nullable(isNullable) }.build()
+        return irTypeFunction(paramIr, returnIr).apply { nullable(isNullable) }.build()
     }
 
     // -------------- Type parameters declared on the class -----
@@ -111,7 +111,7 @@ internal fun convertKotlinType(
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertKtTypeElement(
     ktType: KtTypeElement,
-    preloadedTypeParameters: Map<String, IrGeneric>,
+    preloadedTypeParameters: Map<String, IrTypeGeneric>,
     isNullable: Boolean = false,
 ): IrType {
     return when (ktType) {
@@ -131,7 +131,7 @@ internal fun convertKtTypeElement(
                 convertKtTypeElement(returnType, preloadedTypeParameters)
             } ?: irTypePrimitive(IrTypePrimitive.PrimitiveType.Void()).build()
 
-            irFunctionType(parameterTypes, returnType).apply {
+            irTypeFunction(parameterTypes, returnType).apply {
                 nullable(isNullable)
             }.build()
         }
@@ -146,7 +146,7 @@ context(KotlinModule, BindingContext, ScenarioScope)
 private fun convertUserType(
     userType: KtUserType,
     isNullable: Boolean,
-    genericSymbols: Map<String, IrGeneric>,
+    genericSymbols: Map<String, IrTypeGeneric>,
 ): IrType {
     val simpleName = userType.referenceExpression!!.text
 

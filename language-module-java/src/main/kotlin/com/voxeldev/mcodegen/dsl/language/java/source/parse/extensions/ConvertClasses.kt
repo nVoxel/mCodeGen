@@ -9,13 +9,15 @@ import com.voxeldev.mcodegen.dsl.ir.builders.IrFileBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irClass
 import com.voxeldev.mcodegen.dsl.ir.builders.irSuperClass
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.ir.packagePrivateVisibility
-import com.voxeldev.mcodegen.dsl.language.java.ir.privateVisibility
-import com.voxeldev.mcodegen.dsl.language.java.ir.protectedVisibility
-import com.voxeldev.mcodegen.dsl.language.java.ir.publicVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaPackagePrivateVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaPrivateVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaProtectedVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaPublicVisibility
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
+
+const val JAVA_CLASS_SIMPLE_NAME = "simpleName"
 
 context(JavaModule, ScenarioScope)
 internal fun convertClasses(psiClasses: Array<PsiClass>, irFileBuilder: IrFileBuilder) {
@@ -30,7 +32,7 @@ private fun convertClass(psiClass: PsiClass): IrClass {
 
     val irClassBuilder = irClass(className)
 
-    irClassBuilder.addLanguageProperty("simpleName", psiClass.name ?: "Ir:UnnamedClass")
+    irClassBuilder.addLanguageProperty(JAVA_CLASS_SIMPLE_NAME, psiClass.name ?: "Ir:UnnamedClass")
 
     irClassBuilder.kind(
         when {
@@ -43,13 +45,13 @@ private fun convertClass(psiClass: PsiClass): IrClass {
 
     irClassBuilder.visibility(
         when {
-            psiClass.hasModifierProperty(PsiModifier.PUBLIC) -> publicVisibility()
+            psiClass.hasModifierProperty(PsiModifier.PUBLIC) -> javaPublicVisibility()
 
-            psiClass.hasModifierProperty(PsiModifier.PROTECTED) -> protectedVisibility()
+            psiClass.hasModifierProperty(PsiModifier.PROTECTED) -> javaProtectedVisibility()
 
-            psiClass.hasModifierProperty(PsiModifier.PRIVATE) -> privateVisibility()
+            psiClass.hasModifierProperty(PsiModifier.PRIVATE) -> javaPrivateVisibility()
 
-            else -> if (psiClass.isInterface) publicVisibility() else packagePrivateVisibility()
+            else -> if (psiClass.isInterface) javaPublicVisibility() else javaPackagePrivateVisibility()
         }
     )
 

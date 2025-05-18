@@ -13,13 +13,14 @@ import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrObjectClassKind
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_CLASS_SIMPLE_NAME
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_SUPERCLASS_CTOR_PARAMETERS
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.lexer.KtTokens
 
 context(KotlinModule, ScenarioScope)
 internal fun convertClass(irClass: IrClass): TypeSpec {
-    val name = irClass.languageProperties["simpleName"] as? String ?: irClass.name
+    val name = irClass.languageProperties[KT_CLASS_SIMPLE_NAME] as? String ?: irClass.name
 
     val poetClassBuilder = when (irClass.kind) {
         is IrClassClassKind -> TypeSpec.classBuilder(name)

@@ -7,42 +7,38 @@ import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 
-context(KotlinModule)
-internal fun publicVisibility(): IrVisibilityPublic = IrVisibilityPublic(
+fun kotlinPublicVisibility(): IrVisibilityPublic = IrVisibilityPublic(
     listOf(
         IrStringRepresentation(
-            languageName,
+            KotlinModule.languageName,
             "public"
         )
     )
 )
 
-context(KotlinModule)
-internal fun protectedVisibility(): IrVisibilityProtected = IrVisibilityProtected(
+fun kotlinProtectedVisibility(): IrVisibilityProtected = IrVisibilityProtected(
     listOf(
         IrStringRepresentation(
-            languageName,
+            KotlinModule.languageName,
             "protected"
         )
     )
 )
 
-context(KotlinModule)
-internal fun internalVisibility(): IrVisibilityInternal = IrVisibilityInternal(
+fun kotlinInternalVisibility(): IrVisibilityInternal = IrVisibilityInternal(
     listOf(
         IrStringRepresentation(
-            languageName,
+            KotlinModule.languageName,
             "internal"
         )
     )
 )
 
 
-context(KotlinModule)
-internal fun privateVisibility(): IrVisibilityPrivate = IrVisibilityPrivate(
+fun kotlinPrivateVisibility(): IrVisibilityPrivate = IrVisibilityPrivate(
     listOf(
         IrStringRepresentation(
-            languageName,
+            KotlinModule.languageName,
             "private"
         )
     )

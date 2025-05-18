@@ -22,9 +22,9 @@ import com.squareup.kotlinpoet.SHORT_ARRAY
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeVariableName
 import com.squareup.kotlinpoet.UNIT
-import com.voxeldev.mcodegen.dsl.ir.IrArrayType
-import com.voxeldev.mcodegen.dsl.ir.IrFunctionType
-import com.voxeldev.mcodegen.dsl.ir.IrGeneric
+import com.voxeldev.mcodegen.dsl.ir.IrTypeArray
+import com.voxeldev.mcodegen.dsl.ir.IrTypeFunction
+import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
@@ -34,7 +34,7 @@ import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 context(KotlinModule, ScenarioScope)
 internal fun convertType(irType: IrType): TypeName {
     val baseType = when (irType) {
-        is IrArrayType -> {
+        is IrTypeArray -> {
             val elementName = convertType(irType.elementType)
 
             when (val elementType = irType.elementType) {
@@ -57,7 +57,7 @@ internal fun convertType(irType: IrType): TypeName {
             }
         }
 
-        is IrGeneric -> TypeVariableName(irType.name)
+        is IrTypeGeneric -> TypeVariableName(irType.name)
 
         is IrTypeReference -> {
             val className = ClassName.bestGuess(irType.referencedClassName)
@@ -85,7 +85,7 @@ internal fun convertType(irType: IrType): TypeName {
             }
         }
 
-        is IrFunctionType -> {
+        is IrTypeFunction -> {
             val parameterTypes = irType.parameterTypes
                 .map { parameterType -> convertType(parameterType) }
                 .toTypedArray()

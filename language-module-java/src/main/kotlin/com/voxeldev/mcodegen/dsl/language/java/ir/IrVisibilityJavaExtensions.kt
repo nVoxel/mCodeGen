@@ -6,36 +6,31 @@ import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.JavaModule.languageName
 
-context(JavaModule)
-internal fun publicVisibility(): IrVisibilityPublic = IrVisibilityPublic(
+fun javaPublicVisibility(): IrVisibilityPublic = IrVisibilityPublic(
     listOf(
         IrStringRepresentation(
-            languageName,
+            JavaModule.languageName,
             "public"
         )
     )
 )
 
-context(JavaModule)
-internal fun protectedVisibility(): IrVisibilityProtected = IrVisibilityProtected(
+fun javaProtectedVisibility(): IrVisibilityProtected = IrVisibilityProtected(
     listOf(
         IrStringRepresentation(
-            languageName,
+            JavaModule.languageName,
             "protected"
         )
     )
 )
 
-context(JavaModule)
-internal fun packagePrivateVisibility(): IrVisibilityPackagePrivate = IrVisibilityPackagePrivate()
+fun javaPackagePrivateVisibility(): IrVisibilityPackagePrivate = IrVisibilityPackagePrivate()
 
-context(JavaModule)
-internal fun privateVisibility(): IrVisibilityPrivate = IrVisibilityPrivate(
+fun javaPrivateVisibility(): IrVisibilityPrivate = IrVisibilityPrivate(
     listOf(
         IrStringRepresentation(
-            languageName,
+            JavaModule.languageName,
             "private"
         )
     )
@@ -44,7 +39,7 @@ internal fun privateVisibility(): IrVisibilityPrivate = IrVisibilityPrivate(
 data class IrVisibilityPackagePrivate(
     override val stringRepresentation: List<IrStringRepresentation> = listOf(
         IrStringRepresentation(
-            language = languageName,
+            language = JavaModule.languageName,
             representation = "package-private",
         )
     )

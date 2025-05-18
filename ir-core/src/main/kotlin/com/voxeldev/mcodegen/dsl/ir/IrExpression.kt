@@ -104,7 +104,8 @@ data class IrPropertyAccessExpression(
 data class IrMethodCallExpression(
     val receiver: IrExpression?, // null if it's a top-level function call
     val methodName: String,
-    val arguments: List<IrExpression>,
+    val valueArguments: List<IrExpression>,
+    val typeArguments: List<IrType>, // contains only explicit (written in the code) arguments
     val irMethodCallKind: IrMethodCallKind,
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,

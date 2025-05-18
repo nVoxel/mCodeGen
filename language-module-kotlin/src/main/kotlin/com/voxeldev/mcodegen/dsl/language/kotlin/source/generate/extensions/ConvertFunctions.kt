@@ -71,7 +71,7 @@ internal fun convertFunction(
 
         val otherConstructorCall = (irMethod as? IrConstructor)?.otherConstructorCall
         if (otherConstructorCall != null) {
-            val arguments = otherConstructorCall.arguments.map { argument -> convertExpression(argument) }
+            val arguments = otherConstructorCall.valueArguments.map { argument -> convertExpression(argument) }
 
             when (otherConstructorCall.irMethodCallKind) {
                 IrMethodCallExpression.IrSuperMethodCallKind -> callSuperConstructor(arguments)

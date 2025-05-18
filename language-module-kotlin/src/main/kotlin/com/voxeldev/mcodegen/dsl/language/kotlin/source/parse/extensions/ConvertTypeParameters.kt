@@ -1,10 +1,10 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions
 
-import com.voxeldev.mcodegen.dsl.ir.IrGeneric
+import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrTypeParameter
 import com.voxeldev.mcodegen.dsl.ir.builders.IrClassBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.IrMethodBuilder
-import com.voxeldev.mcodegen.dsl.ir.builders.irGeneric
+import com.voxeldev.mcodegen.dsl.ir.builders.irTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeParameter
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
@@ -49,7 +49,7 @@ context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertTypeParameter(
     ktClassOrObject: KtClassOrObject?,
     ktTypeParameter: KtTypeParameter,
-    preloadedTypeParameters: Map<String, IrGeneric>,
+    preloadedTypeParameters: Map<String, IrTypeGeneric>,
 ): IrTypeParameter {
     val name = ktTypeParameter.name!!
 
@@ -88,14 +88,14 @@ internal fun convertTypeParameter(
 }
 
 context(KotlinModule, BindingContext, ScenarioScope)
-internal fun preloadTypeParameters(ktTypeParameters: List<KtTypeParameter>): Map<String, IrGeneric> {
-    val genericSymbols = mutableMapOf<String, IrGeneric>()
+internal fun preloadTypeParameters(ktTypeParameters: List<KtTypeParameter>): Map<String, IrTypeGeneric> {
+    val genericSymbols = mutableMapOf<String, IrTypeGeneric>()
 
     ktTypeParameters.forEach { param ->
         val name = param.name!!
         genericSymbols.putIfAbsent(
             name,
-            irGeneric(name).apply {
+            irTypeGeneric(name).apply {
                 nullable(true)
             }.build()
         )

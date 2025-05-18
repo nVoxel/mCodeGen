@@ -3,18 +3,31 @@ package com.voxeldev.mcodegen.dsl.utils.source.unify
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrField
 import com.voxeldev.mcodegen.dsl.ir.IrFile
+import com.voxeldev.mcodegen.dsl.ir.builders.irFile
 
 /**
  * Returns a list of classes whose names match and exist in all sources.
  */
 class UnifyClassesStrategyByNameAndFields :
-    UnifySourcesListStrategy<IrFile, List<IrClass>> {
+    UnifySourcesListStrategy<IrFile, IrFile> {
 
-    override fun getUnifiedSourcesList(vararg sources: IrFile): List<IrClass> {
-        return if (sources.size < 2) {
-            sources.firstOrNull()?.declarations?.filterIsInstance<IrClass>() ?: emptyList()
+    override fun getUnifiedSourcesList(vararg sources: IrFile): IrFile {
+        return if (sources.isEmpty()) {
+            throw IllegalArgumentException("At least one source should be provided to UnifySourcesListStrategy")
         } else {
-            getCommonClasses(*sources)
+            val irFile = irFile(sources.first().name)
+
+            val commonClasses = if (sources.size < 2) {
+                 sources.firstOrNull()?.declarations?.filterIsInstance<IrClass>() ?: emptyList()
+            } else {
+                getCommonClasses(*sources)
+            }
+
+            commonClasses.forEach { commonClass ->
+                irFile.addDeclaration(commonClass)
+            }
+
+            irFile.build()
         }
     }
 
@@ -58,9 +71,9 @@ class UnifyClassesStrategyByNameAndFields :
         return matchingClasses.first().fields.mapNotNull { irField ->
             val matches = fieldsHashMaps
                 .mapNotNull { it[irField.name] }
-                .filter { foundIrField -> irField.type != foundIrField.type } // TODO: check this
+                .filter { foundIrField -> irField.type == foundIrField.type }
 
-            if (matches.size < fieldsHashMaps.size) null else irField
+            if (matches.size == fieldsHashMaps.size) irField else null
         }
     }
 

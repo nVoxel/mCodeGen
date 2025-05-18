@@ -13,10 +13,10 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irParameter
 import com.voxeldev.mcodegen.dsl.ir.builders.irSuperClass
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrObjectClassKind
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.internalVisibility
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.privateVisibility
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.protectedVisibility
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.publicVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinInternalVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinPrivateVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinProtectedVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinPublicVisibility
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassNotAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
 
+const val KT_CLASS_SIMPLE_NAME = "simpleName"
 const val KT_SUPERCLASS_CTOR_PARAMETERS = "ktSuperClassCtorParameters"
 
 context(KotlinModule, BindingContext, ScenarioScope)
@@ -44,7 +45,7 @@ internal fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
 
     val irClassBuilder = irClass(className)
 
-    irClassBuilder.addLanguageProperty("simpleName", ktClassOrObject.name ?: "Ir:UnnamedClass")
+    irClassBuilder.addLanguageProperty(KT_CLASS_SIMPLE_NAME, ktClassOrObject.name ?: "Ir:UnnamedClass")
 
     irClassBuilder.kind(
         when {
@@ -58,10 +59,10 @@ internal fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
 
     irClassBuilder.visibility(
         when {
-            ktClassOrObject.hasModifier(KtTokens.PROTECTED_KEYWORD) -> protectedVisibility()
-            ktClassOrObject.hasModifier(KtTokens.INTERNAL_KEYWORD) -> internalVisibility()
-            ktClassOrObject.hasModifier(KtTokens.PRIVATE_KEYWORD) -> privateVisibility()
-            else -> publicVisibility()
+            ktClassOrObject.hasModifier(KtTokens.PROTECTED_KEYWORD) -> kotlinProtectedVisibility()
+            ktClassOrObject.hasModifier(KtTokens.INTERNAL_KEYWORD) -> kotlinInternalVisibility()
+            ktClassOrObject.hasModifier(KtTokens.PRIVATE_KEYWORD) -> kotlinPrivateVisibility()
+            else -> kotlinPublicVisibility()
         }
     )
 

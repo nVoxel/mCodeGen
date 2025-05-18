@@ -20,8 +20,10 @@ import com.voxeldev.mcodegen.dsl.ir.IrTypeReferenceIdentifierExpression
 import com.voxeldev.mcodegen.dsl.ir.IrUnaryExpression
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrLambdaExpression
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrNullSafeExpression
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrParenthesizedExpression
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_CLASS_MEMBER_REFERENCE
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_SAFE_TYPE_CAST
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_TOP_LEVEL_MEMBER_REFERENCE
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 
@@ -87,22 +89,50 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
 
                 when (irExpression.irMethodCallKind) {
                     is IrMethodCallExpression.IrThisMethodCallKind -> {
-                        add("this(")
+                        add("this")
                     }
 
                     is IrMethodCallExpression.IrSuperMethodCallKind -> {
-                        add("super(")
+                        add("super")
                     }
 
                     else -> {
-                        add("%N(", irExpression.methodName)
+                        val methodContainerPackage =
+                            irExpression.languageProperties[KT_TOP_LEVEL_MEMBER_REFERENCE] as? String
+
+                        if (methodContainerPackage != null) {
+                            add("%M", MemberName(methodContainerPackage, irExpression.methodName))
+                        } else {
+                            add("%N", irExpression.methodName)
+                        }
                     }
                 }
 
-                val arguments = irExpression.arguments.map { argument -> convertExpression(argument) }
+                if (irExpression.typeArguments.isNotEmpty()) {
+                    add("<")
+
+                    val typeArguments = irExpression.typeArguments.map { irType ->
+                        CodeBlock.of("%T", convertType(irType))
+                    }
+                    add(typeArguments.joinToCode(separator = ","))
+
+                    add(">")
+                }
+
+                val arguments = irExpression.valueArguments.map { argument -> convertExpression(argument) }
+
+                // move lambda argument out of parentheses
+                if (irExpression.valueArguments.size == 1 && irExpression.valueArguments.first() is IrLambdaExpression) {
+                    add(" ")
+                } else {
+                    add("(")
+                }
+
                 add(arguments.joinToCode(separator = ", "))
 
-                add(")")
+                if (irExpression.valueArguments.size != 1 || irExpression.valueArguments.first() !is IrLambdaExpression) {
+                    add(")")
+                }
             }
         }
 
@@ -167,8 +197,10 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
         }
 
         is IrCastExpression -> {
+            val token = if (irExpression.languageProperties[KT_SAFE_TYPE_CAST] == true) "as?" else "as"
+
             poetCodeBlock.add(
-                "%L as %T",
+                "%L $token %T",
                 convertExpression(irExpression.expression),
                 convertType(irExpression.targetType),
             )
@@ -209,6 +241,14 @@ internal fun convertExpression(irExpression: IrExpression): CodeBlock {
             poetCodeBlock.add(
                 "(%L)",
                 convertStatement(irExpression.body, addLineBreak = false),
+            )
+        }
+
+        is IrNullSafeExpression -> {
+            poetCodeBlock.add(
+                "%L?.%L",
+                convertExpression(irExpression.receiver),
+                convertExpression(irExpression.selector),
             )
         }
 

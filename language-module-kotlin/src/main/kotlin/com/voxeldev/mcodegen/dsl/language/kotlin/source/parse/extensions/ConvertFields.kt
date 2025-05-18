@@ -6,10 +6,10 @@ import com.voxeldev.mcodegen.dsl.ir.builders.IrClassBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.IrFieldBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irField
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.internalVisibility
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.privateVisibility
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.protectedVisibility
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.publicVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinInternalVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinPrivateVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinProtectedVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinPublicVisibility
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
@@ -94,10 +94,10 @@ private fun convertFieldModifiers(
 ) {
     irFieldBuilder.visibility(
         when {
-            ktField.hasModifier(KtTokens.PROTECTED_KEYWORD) -> protectedVisibility()
-            ktField.hasModifier(KtTokens.INTERNAL_KEYWORD) -> internalVisibility()
-            ktField.hasModifier(KtTokens.PRIVATE_KEYWORD) -> privateVisibility()
-            else -> publicVisibility()
+            ktField.hasModifier(KtTokens.PROTECTED_KEYWORD) -> kotlinProtectedVisibility()
+            ktField.hasModifier(KtTokens.INTERNAL_KEYWORD) -> kotlinInternalVisibility()
+            ktField.hasModifier(KtTokens.PRIVATE_KEYWORD) -> kotlinPrivateVisibility()
+            else -> kotlinPublicVisibility()
         }
     )
 

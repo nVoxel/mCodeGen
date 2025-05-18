@@ -35,7 +35,7 @@ data class IrUnaryOperatorUnknown(
  */
 data class IrLambdaExpression(
     val parameters: List<IrParameter>,
-    val returnType: IrType,
+    val returnType: IrType?,
     val targetInterfaceType: IrType?,
     val body: IrBlockStatement,
     override val stringRepresentation: List<IrStringRepresentation>,
@@ -54,6 +54,23 @@ data class IrLambdaExpression(
  */
 data class IrParenthesizedExpression(
     val body: IrStatement,
+    override val stringRepresentation: List<IrStringRepresentation>,
+    override val location: IrLocation?,
+    override val annotations: List<IrAnnotation>,
+    override val languageProperties: Map<String, Any>,
+) : IrExpression(
+    stringRepresentation = stringRepresentation,
+    location = location,
+    annotations = annotations,
+    languageProperties = languageProperties,
+)
+
+/**
+ * An expression for null safe access in Kotlin. For example: someNullable?.value
+ */
+data class IrNullSafeExpression(
+    val receiver: IrExpression, // left part
+    val selector: IrExpression, // right part
     override val stringRepresentation: List<IrStringRepresentation>,
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,

@@ -5,10 +5,10 @@ import com.voxeldev.mcodegen.dsl.ir.builders.IrClassBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irExpressionStatement
 import com.voxeldev.mcodegen.dsl.ir.builders.irField
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.ir.packagePrivateVisibility
-import com.voxeldev.mcodegen.dsl.language.java.ir.privateVisibility
-import com.voxeldev.mcodegen.dsl.language.java.ir.protectedVisibility
-import com.voxeldev.mcodegen.dsl.language.java.ir.publicVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaPackagePrivateVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaPrivateVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaProtectedVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaPublicVisibility
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.com.intellij.psi.PsiField
@@ -33,10 +33,10 @@ private fun convertField(psiClass: PsiClass, psiField: PsiField): IrField? {
 
     irFieldBuilder.visibility(
         when {
-            psiField.hasModifierProperty(PsiModifier.PUBLIC) -> publicVisibility()
-            psiField.hasModifierProperty(PsiModifier.PROTECTED) -> protectedVisibility()
-            psiField.hasModifierProperty(PsiModifier.PRIVATE) -> privateVisibility()
-            else -> if (psiClass.isInterface) publicVisibility() else packagePrivateVisibility()
+            psiField.hasModifierProperty(PsiModifier.PUBLIC) -> javaPublicVisibility()
+            psiField.hasModifierProperty(PsiModifier.PROTECTED) -> javaProtectedVisibility()
+            psiField.hasModifierProperty(PsiModifier.PRIVATE) -> javaPrivateVisibility()
+            else -> if (psiClass.isInterface) javaPublicVisibility() else javaPackagePrivateVisibility()
         }
     )
 

@@ -1,9 +1,9 @@
 package com.voxeldev.mcodegen.dsl.ir.builders
 
 import com.voxeldev.mcodegen.dsl.ir.IrAnnotation
-import com.voxeldev.mcodegen.dsl.ir.IrArrayType
-import com.voxeldev.mcodegen.dsl.ir.IrFunctionType
-import com.voxeldev.mcodegen.dsl.ir.IrGeneric
+import com.voxeldev.mcodegen.dsl.ir.IrTypeArray
+import com.voxeldev.mcodegen.dsl.ir.IrTypeFunction
+import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrLocation
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
@@ -90,26 +90,26 @@ class IrTypePrimitiveBuilder(private val primitiveType: IrTypePrimitive.Primitiv
 }
 
 /**
- * Creates a new [IrFunctionTypeBuilder] instance with the given parameter types and return type.
+ * Creates a new [IrTypeFunctionBuilder] instance with the given parameter types and return type.
  */
-fun irFunctionType(
+fun irTypeFunction(
     parameterTypes: List<IrType>,
     returnType: IrType,
-): IrFunctionTypeBuilder = IrFunctionTypeBuilder(
+): IrTypeFunctionBuilder = IrTypeFunctionBuilder(
     parameterTypes = parameterTypes,
     returnType = returnType,
 )
 
 /**
- * Builder class for creating [IrFunctionType] instances.
+ * Builder class for creating [IrTypeFunction] instances.
  */
-class IrFunctionTypeBuilder(
+class IrTypeFunctionBuilder(
     private val parameterTypes: List<IrType>,
     private val returnType: IrType,
 ) : IrTypeBuilder() {
-    fun build(): IrFunctionType {
+    fun build(): IrTypeFunction {
         val properties = buildTypeProperties()
-        return IrFunctionType(
+        return IrTypeFunction(
             parameterTypes = parameterTypes,
             returnType = returnType,
             isNullable = properties.isNullable,
@@ -121,18 +121,18 @@ class IrFunctionTypeBuilder(
 }
 
 /**
- * Creates a new [IrArrayTypeBuilder] instance with the given element type.
+ * Creates a new [IrTypeArrayBuilder] instance with the given element type.
  */
-fun irArrayType(elementType: IrType): IrArrayTypeBuilder =
-    IrArrayTypeBuilder(elementType)
+fun irTypeArray(elementType: IrType): IrTypeArrayBuilder =
+    IrTypeArrayBuilder(elementType)
 
 /**
- * Builder class for creating [IrArrayType] instances.
+ * Builder class for creating [IrTypeArray] instances.
  */
-class IrArrayTypeBuilder(private val elementType: IrType) : IrTypeBuilder() {
-    fun build(): IrArrayType {
+class IrTypeArrayBuilder(private val elementType: IrType) : IrTypeBuilder() {
+    fun build(): IrTypeArray {
         val properties = buildTypeProperties()
-        return IrArrayType(
+        return IrTypeArray(
             elementType = elementType,
             isNullable = properties.isNullable,
             location = properties.location,
@@ -143,18 +143,18 @@ class IrArrayTypeBuilder(private val elementType: IrType) : IrTypeBuilder() {
 }
 
 /**
- * Creates a new [IrGenericBuilder] instance with the given name.
+ * Creates a new [IrTypeGenericBuilder] instance with the given name.
  */
-fun irGeneric(name: String): IrGenericBuilder =
-    IrGenericBuilder(name)
+fun irTypeGeneric(name: String): IrTypeGenericBuilder =
+    IrTypeGenericBuilder(name)
 
 /**
- * Builder class for creating [IrGeneric] instances.
+ * Builder class for creating [IrTypeGeneric] instances.
  */
-class IrGenericBuilder(private val name: String) : IrTypeBuilder() {
-    fun build(): IrGeneric {
+class IrTypeGenericBuilder(private val name: String) : IrTypeBuilder() {
+    fun build(): IrTypeGeneric {
         val properties = buildTypeProperties()
-        return IrGeneric(
+        return IrTypeGeneric(
             name = name,
             isNullable = properties.isNullable,
             location = properties.location,

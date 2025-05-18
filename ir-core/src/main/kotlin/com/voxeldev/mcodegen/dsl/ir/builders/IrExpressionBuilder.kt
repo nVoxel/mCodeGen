@@ -182,15 +182,20 @@ fun irMethodCallExpression(methodName: String): IrMethodCallExpressionBuilder =
  */
 class IrMethodCallExpressionBuilder(private val methodName: String) : IrExpressionBuilder() {
     private var receiver: IrExpression? = null
-    private var arguments: MutableList<IrExpression> = mutableListOf()
+    private var valueArguments: MutableList<IrExpression> = mutableListOf()
+    private var typeArguments: MutableList<IrType> = mutableListOf()
     private var irMethodCallKind : IrMethodCallExpression.IrMethodCallKind = IrMethodCallExpression.IrDefaultMethodCallKind
 
     fun receiver(receiver: IrExpression?) {
         this.receiver = receiver
     }
 
-    fun addArgument(argument: IrExpression) {
-        arguments.add(argument)
+    fun addValueArgument(argument: IrExpression) {
+        valueArguments.add(argument)
+    }
+
+    fun addTypeArgument(type: IrType) {
+        typeArguments.add(type)
     }
 
     fun methodCallKind(callKind: IrMethodCallExpression.IrMethodCallKind) {
@@ -202,7 +207,8 @@ class IrMethodCallExpressionBuilder(private val methodName: String) : IrExpressi
         return IrMethodCallExpression(
             receiver = receiver,
             methodName = methodName,
-            arguments = arguments,
+            valueArguments = valueArguments,
+            typeArguments = typeArguments,
             irMethodCallKind = irMethodCallKind,
             stringRepresentation = properties.stringRepresentation,
             location = properties.location,

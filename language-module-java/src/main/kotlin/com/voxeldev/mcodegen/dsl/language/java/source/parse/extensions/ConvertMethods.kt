@@ -9,10 +9,10 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irMethod
 import com.voxeldev.mcodegen.dsl.ir.builders.irMethodBody
 import com.voxeldev.mcodegen.dsl.ir.builders.irParameter
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
-import com.voxeldev.mcodegen.dsl.language.java.ir.packagePrivateVisibility
-import com.voxeldev.mcodegen.dsl.language.java.ir.privateVisibility
-import com.voxeldev.mcodegen.dsl.language.java.ir.protectedVisibility
-import com.voxeldev.mcodegen.dsl.language.java.ir.publicVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaPackagePrivateVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaPrivateVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaProtectedVisibility
+import com.voxeldev.mcodegen.dsl.language.java.ir.javaPublicVisibility
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiAnnotationMethod
 import org.jetbrains.kotlin.com.intellij.psi.PsiClass
@@ -46,10 +46,10 @@ internal fun convertMethod(psiClass: PsiClass, psiMethod: PsiMethod): IrMethod {
 
     irMethodBuilder.visibility(
         when {
-            psiMethod.hasModifierProperty(PsiModifier.PUBLIC) -> publicVisibility()
-            psiMethod.hasModifierProperty(PsiModifier.PROTECTED) -> protectedVisibility()
-            psiMethod.hasModifierProperty(PsiModifier.PRIVATE) -> privateVisibility()
-            else -> if (psiClass.isInterface) publicVisibility() else packagePrivateVisibility()
+            psiMethod.hasModifierProperty(PsiModifier.PUBLIC) -> javaPublicVisibility()
+            psiMethod.hasModifierProperty(PsiModifier.PROTECTED) -> javaProtectedVisibility()
+            psiMethod.hasModifierProperty(PsiModifier.PRIVATE) -> javaPrivateVisibility()
+            else -> if (psiClass.isInterface) javaPublicVisibility() else javaPackagePrivateVisibility()
         }
     )
 

@@ -10,6 +10,7 @@ import com.voxeldev.mcodegen.dsl.language.base.LanguageModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertImports
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import com.voxeldev.mcodegen.dsl.source.edit.scenario.EditScenario
+import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationListMapper
 import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapper
 import com.voxeldev.mcodegen.dsl.utils.GlobalCompilerUtils
 import com.voxeldev.mcodegen.dsl.utils.GlobalFileUtils
@@ -22,8 +23,8 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import java.io.File
 import kotlin.io.path.Path
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions.convertClass as convertIrClass
-import com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions.convertField as convertIrField
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions.convertFunction as convertIrMethod
+import com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions.convertField as convertIrField
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertClass as convertKtClass
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertFieldAsProperty as convertKtField
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertFunction as convertKtFunction
@@ -38,7 +39,9 @@ object KotlinModule : LanguageModule {
     }
 
     const val KOTLIN_INDENT_PROPERTY_NAME = "indent"
-    private const val KOTLIN_INDENT_PROPERTY_DEFAULT_VALUE = "    "
+    private const val KOTLIN_INDENT_PROPERTY_DEFAULT_VALUE = "  "
+
+    const val KOTLIN_FILE_PACKAGE = "package"
 
     override val languageName: String = "kotlin"
 
@@ -92,7 +95,7 @@ object KotlinModule : LanguageModule {
     ): IrFile {
         val irFileBuilder = irFile(fileName)
 
-        irFileBuilder.addLanguageProperty("package", ktFile.packageFqName.asString())
+        irFileBuilder.addLanguageProperty(KOTLIN_FILE_PACKAGE, ktFile.packageFqName.asString())
 
         with(bindingContext) {
             convertImports(ktFile.importList, irFileBuilder)
@@ -134,6 +137,18 @@ object KotlinModule : LanguageModule {
     }
 
     context(ScenarioScope)
+    fun generateMultiple(
+        sources: List<IrFile>,
+        applyToBasePath: String,
+        mappers: List<GenerationListMapper>,
+    ) {
+        val mappedSources = mappers.fold(sources) { acc, mapper -> mapper.map(acc) }
+        mappedSources.forEach { source ->
+            generate(source, applyToBasePath, listOf())
+        }
+    }
+
+    context(ScenarioScope)
     override fun generate(
         source: IrFile,
         applyToBasePath: String,
@@ -141,12 +156,12 @@ object KotlinModule : LanguageModule {
     ) {
         val mappedSource = mappers.fold(source) { acc, mapper -> mapper.map(acc) }
 
-        val filePackage = mappedSource.languageProperties["package"] as? String
+        val filePackage = mappedSource.languageProperties[KOTLIN_FILE_PACKAGE] as? String
             ?: throw IllegalStateException("Package not found in the IrFile for Kotlin")
 
-        val poetFileBuilder = FileSpec.builder(filePackage, source.name.removeSuffix(".kt"))
+        val poetFileBuilder = FileSpec.builder(filePackage, mappedSource.name.removeSuffix(".kt"))
 
-        source.declarations.forEach { declaration ->
+        mappedSource.declarations.forEach { declaration ->
             when (declaration) {
                 is IrClass -> {
                     poetFileBuilder.addType(convertIrClass(declaration))

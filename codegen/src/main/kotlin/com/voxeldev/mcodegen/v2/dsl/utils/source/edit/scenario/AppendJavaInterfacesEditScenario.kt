@@ -1,10 +1,11 @@
 package com.voxeldev.mcodegen.v2.dsl.utils.source.edit.scenario
 
 import com.voxeldev.mcodegen.dsl.ir.IrClass
+import com.voxeldev.mcodegen.dsl.ir.IrFile
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import com.voxeldev.mcodegen.dsl.source.edit.scenario.EditScenarioBaseImpl
 import com.voxeldev.mcodegen.dsl.source.edit.step.EditStep
-import com.voxeldev.mcodegen.v1.scenarios.tdCommon.TdCommonScenarioConstants
+import com.voxeldev.mcodegen.v2.constants.TdCommonScenarioConstants
 import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AddJavaGettersEditStep
 import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AddJavaImportEditStep
 import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AppendJavaInterfacesEditStep
@@ -15,8 +16,8 @@ private val ignoredClasses = setOf<String>(
 )
 
 context(ScenarioScope)
-fun appendJavaInterfacesEditScenario(commonClasses: List<IrClass>): AppendJavaInterfacesEditScenario {
-    return AppendJavaInterfacesEditScenario(commonClasses)
+fun appendJavaInterfacesEditScenario(commonClasses: IrFile): AppendJavaInterfacesEditScenario {
+    return AppendJavaInterfacesEditScenario(commonClasses.declarations.filterIsInstance<IrClass>())
 }
 
 context(ScenarioScope)

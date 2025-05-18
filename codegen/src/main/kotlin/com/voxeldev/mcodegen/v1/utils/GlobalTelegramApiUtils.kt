@@ -8,8 +8,4 @@ object GlobalTelegramApiUtils {
     fun getAndroidTelegramApiFile(): File {
         return File(GlobalConstants.ANDROID_SOURCE_PATH)
     }
-
-    fun getDesktopTelegramApiFile(): File {
-        return File(GlobalConstants.DESKTOP_SOURCE_PATH)
-    }
 }

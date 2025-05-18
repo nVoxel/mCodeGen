@@ -2,7 +2,7 @@ package com.voxeldev.mcodegen.dsl.language.kotlin.source.generate.extensions
 
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.TypeVariableName
-import com.voxeldev.mcodegen.dsl.ir.IrGeneric
+import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrTypeParameter
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
@@ -15,7 +15,7 @@ context(KotlinModule, ScenarioScope)
 internal fun convertTypeParameter(irTypeParameter: IrTypeParameter): TypeVariableName {
     val bounds = irTypeParameter.extendsList.map { irType ->
         when (irType) {
-            is IrGeneric, is IrTypeReference -> convertType(irType)
+            is IrTypeGeneric, is IrTypeReference -> convertType(irType)
             else -> throw IllegalArgumentException("This generic type is not supported in Kotlin")
         }
     }

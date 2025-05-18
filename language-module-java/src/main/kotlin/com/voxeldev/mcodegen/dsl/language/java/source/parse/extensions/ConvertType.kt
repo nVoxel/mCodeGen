@@ -2,8 +2,8 @@ package com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions
 
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
-import com.voxeldev.mcodegen.dsl.ir.builders.irArrayType
-import com.voxeldev.mcodegen.dsl.ir.builders.irGeneric
+import com.voxeldev.mcodegen.dsl.ir.builders.irTypeArray
+import com.voxeldev.mcodegen.dsl.ir.builders.irTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeReference
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
@@ -45,7 +45,7 @@ internal fun convertType(psiType: PsiType?): IrType {
             return if (resolvedClass is PsiTypeParameter) {
                 val resolvedParameterName = resolvedClass.name ?: return getFallbackType(psiType)
 
-                irGeneric(name = resolvedParameterName).build()
+                irTypeGeneric(name = resolvedParameterName).build()
             } else {
                 val resolvedClassName = resolvedClass.qualifiedName ?: return getFallbackType(psiType)
 
@@ -62,7 +62,7 @@ internal fun convertType(psiType: PsiType?): IrType {
         }
 
         is PsiArrayType -> {
-            irArrayType(convertType(psiType.componentType))
+            irTypeArray(convertType(psiType.componentType))
                 .build()
         }
 

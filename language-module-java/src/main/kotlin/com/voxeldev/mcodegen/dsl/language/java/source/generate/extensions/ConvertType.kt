@@ -5,8 +5,8 @@ import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeVariableName
-import com.voxeldev.mcodegen.dsl.ir.IrArrayType
-import com.voxeldev.mcodegen.dsl.ir.IrGeneric
+import com.voxeldev.mcodegen.dsl.ir.IrTypeArray
+import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
@@ -16,9 +16,9 @@ import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 context(JavaModule, ScenarioScope)
 internal fun convertType(irType: IrType): TypeName {
     return when (irType) {
-        is IrArrayType -> ArrayTypeName.of(convertType(irType.elementType))
+        is IrTypeArray -> ArrayTypeName.of(convertType(irType.elementType))
 
-        is IrGeneric -> TypeVariableName.get(irType.name)
+        is IrTypeGeneric -> TypeVariableName.get(irType.name)
 
         is IrTypeReference -> {
             val className = ClassName.bestGuess(irType.referencedClassName)

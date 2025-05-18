@@ -11,13 +11,14 @@ import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
 import com.voxeldev.mcodegen.dsl.language.java.JavaModule
+import com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions.JAVA_CLASS_SIMPLE_NAME
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
 import javax.lang.model.element.Modifier
 
 context(JavaModule, ScenarioScope)
 internal fun convertClass(irClass: IrClass): TypeSpec {
-    val name = irClass.languageProperties["simpleName"] as? String ?: irClass.name
+    val name = irClass.languageProperties[JAVA_CLASS_SIMPLE_NAME] as? String ?: irClass.name
 
     val poetClassBuilder = when (irClass.kind) {
         IrClassClassKind -> TypeSpec.classBuilder(name)

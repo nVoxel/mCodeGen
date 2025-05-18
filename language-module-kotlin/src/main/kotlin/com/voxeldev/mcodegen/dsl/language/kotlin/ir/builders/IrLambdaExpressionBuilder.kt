@@ -41,7 +41,7 @@ class IrLambdaExpressionBuilder() : IrExpressionBuilder() {
         val properties = buildExpressionProperties()
         return IrLambdaExpression(
             parameters = parameters,
-            returnType = requireNotNull(returnType),
+            returnType = returnType,
             targetInterfaceType = targetInterfaceType,
             body = requireNotNull(body),
             stringRepresentation = properties.stringRepresentation,

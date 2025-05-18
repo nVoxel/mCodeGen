@@ -14,14 +14,15 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.irParameter
 import com.voxeldev.mcodegen.dsl.ir.builders.irReturnStatement
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.internalVisibility
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.privateVisibility
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.protectedVisibility
-import com.voxeldev.mcodegen.dsl.language.kotlin.ir.publicVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinInternalVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinPrivateVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinProtectedVisibility
+import com.voxeldev.mcodegen.dsl.language.kotlin.ir.kotlinPublicVisibility
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtModifierListOwner
@@ -142,7 +143,7 @@ internal fun convertFunction(
                 )
 
                 argumentsExpressions.forEach { argument ->
-                    addArgument(argument)
+                    addValueArgument(argument)
                 }
             }.build()
 
@@ -167,6 +168,10 @@ internal fun convertFunction(
         }
 
         irMethodBuilder.body(irMethodBodyBuilder.build())
+    } else {
+        if (ktClassOrObject is KtClass && ktClassOrObject.isInterface()) {
+            irMethodBuilder.isAbstract(true)
+        }
     }
 
     return irMethodBuilder.build()
@@ -179,10 +184,10 @@ private fun convertFunctionModifiers(
 ) {
     irMethodBuilder.visibility(
         when {
-            ktFunction.hasModifier(KtTokens.PROTECTED_KEYWORD) -> protectedVisibility()
-            ktFunction.hasModifier(KtTokens.INTERNAL_KEYWORD) -> internalVisibility()
-            ktFunction.hasModifier(KtTokens.PRIVATE_KEYWORD) -> privateVisibility()
-            else -> publicVisibility()
+            ktFunction.hasModifier(KtTokens.PROTECTED_KEYWORD) -> kotlinProtectedVisibility()
+            ktFunction.hasModifier(KtTokens.INTERNAL_KEYWORD) -> kotlinInternalVisibility()
+            ktFunction.hasModifier(KtTokens.PRIVATE_KEYWORD) -> kotlinPrivateVisibility()
+            else -> kotlinPublicVisibility()
         }
     )
 
@@ -234,10 +239,10 @@ private fun convertPrimaryConstructorFieldModifiers(
     irParameterBuilder.addLanguageProperty(
         KT_PRIMARY_CTOR_PARAMETER_VISIBILITY,
         when {
-            ktParameter.hasModifier(KtTokens.PROTECTED_KEYWORD) -> protectedVisibility()
-            ktParameter.hasModifier(KtTokens.INTERNAL_KEYWORD) -> internalVisibility()
-            ktParameter.hasModifier(KtTokens.PRIVATE_KEYWORD) -> privateVisibility()
-            else -> publicVisibility()
+            ktParameter.hasModifier(KtTokens.PROTECTED_KEYWORD) -> kotlinProtectedVisibility()
+            ktParameter.hasModifier(KtTokens.INTERNAL_KEYWORD) -> kotlinInternalVisibility()
+            ktParameter.hasModifier(KtTokens.PRIVATE_KEYWORD) -> kotlinPrivateVisibility()
+            else -> kotlinPublicVisibility()
         }
     )
 

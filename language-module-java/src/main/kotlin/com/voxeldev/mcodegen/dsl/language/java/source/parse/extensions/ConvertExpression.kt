@@ -94,7 +94,7 @@ internal fun convertExpression(
                         receiver(convertExpression(receiverExpression, ignoreConstructorCalls))
                     }
                     psiExpression.argumentList.expressions.forEach { argumentExpression ->
-                        addArgument(convertExpression(argumentExpression, ignoreConstructorCalls))
+                        addValueArgument(convertExpression(argumentExpression, ignoreConstructorCalls))
                     }
                     methodCallKind(
                         callKind = methodCallKind
