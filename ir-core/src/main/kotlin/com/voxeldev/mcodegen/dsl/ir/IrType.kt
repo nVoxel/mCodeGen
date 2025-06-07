@@ -50,38 +50,47 @@ data class IrTypePrimitive(
     interface PrimitiveType {
         open class Void : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
+            override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
         open class Boolean : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
+            override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
         open class Byte : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
+            override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
         open class Short : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
+            override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
         open class Int : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
+            override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
         open class Long : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
+            override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
         open class Char : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
+            override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
         open class Float : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
+            override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
         open class Double : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
+            override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
         fun checkEquality(

@@ -215,7 +215,7 @@ internal fun convertExpression(
                     }.orEmpty()
 
                     val ktType = this@BindingContext.get(BindingContext.TYPE, typeRef) ?: return@let null
-                    convertKotlinType(ktType, preloadedTypeParameters) // TODO: preload type params
+                    convertKotlinType(ktType, preloadedTypeParameters)
                 }
             }
 
