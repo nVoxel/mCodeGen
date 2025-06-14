@@ -44,7 +44,7 @@ class KMPInstanceGettersKoinModulesMapper internal constructor(
         val tdApi = source.firstOrNull()
             ?.declarations
             ?.filterIsInstance<IrClass>()
-            ?.find { it.name == "org.drinkless.tdlib.TdApi" }
+            ?.find { it.qualifiedName == "org.drinkless.tdlib.TdApi" }
             ?: throw IllegalArgumentException("Provided source doesn't contain TdApi class")
 
         val koinModules = mutableListOf<IrFile>()
@@ -148,13 +148,13 @@ class KMPInstanceGettersKoinModulesMapper internal constructor(
                         ).apply {
                             val instanceGetterInterfaceType = irTypeReference(
                                 referencedClassName = newPackage + "." + namePrefix +
-                                        irClass.name.substringAfterLast(".") + ".InstanceGetter"
+                                        irClass.simpleName + ".InstanceGetter"
                             ).apply {
                                 nullable(false)
                             }.build()
 
                             val instanceGetterName = newPackage + "." + namePrefix +
-                                    irClass.name.substringAfterLast(".") + "InstanceGetterImpl"
+                                    irClass.simpleName + "InstanceGetterImpl"
 
                             val instanceGetterCreationExpression =
                                 irObjectCreationExpression(instanceGetterName).build()

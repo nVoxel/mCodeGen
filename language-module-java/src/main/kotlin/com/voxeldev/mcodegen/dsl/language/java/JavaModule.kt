@@ -26,7 +26,7 @@ object JavaModule : LanguageModule {
     private const val JAVA_INDENT_PROPERTY_DEFAULT_VALUE = "    "
 
     const val JAVA_PSI_CLASS = "psi_class"
-    const val JAVA_FILE_PACKAGE = "package"
+    const val JAVA_FILE_PACKAGE = "jvmPackage"
 
     override val languageName: String = "java"
 

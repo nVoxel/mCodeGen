@@ -34,18 +34,19 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassNotAny
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperInterfaces
 
-const val KT_CLASS_SIMPLE_NAME = "simpleName"
 const val KT_SUPERCLASS_CTOR_PARAMETERS = "ktSuperClassCtorParameters"
 
 context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertClass(ktClassOrObject: KtClassOrObject): IrClass {
-    val className = ktClassOrObject.fqName?.asString() ?: "Ir:UnnamedClass"
+    val classSimpleName = ktClassOrObject.name ?: "Ir:UnnamedClass"
+    val classQualifiedName = ktClassOrObject.fqName?.asString() ?: "Ir:UnnamedClass"
     val classDescriptor = this@BindingContext.get(BindingContext.CLASS, ktClassOrObject)
         ?: throw IllegalArgumentException("Unable to get KtClass descriptor through BindingContext")
 
-    val irClassBuilder = irClass(className)
-
-    irClassBuilder.addLanguageProperty(KT_CLASS_SIMPLE_NAME, ktClassOrObject.name ?: "Ir:UnnamedClass")
+    val irClassBuilder = irClass(
+        qualifiedName = classQualifiedName,
+        simpleName = classSimpleName,
+    )
 
     irClassBuilder.kind(
         when {

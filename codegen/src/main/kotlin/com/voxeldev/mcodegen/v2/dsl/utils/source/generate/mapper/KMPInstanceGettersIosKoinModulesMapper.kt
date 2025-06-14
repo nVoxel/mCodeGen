@@ -53,7 +53,7 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
         val tdApi = source.firstOrNull()
             ?.declarations
             ?.filterIsInstance<IrClass>()
-            ?.find { it.name == "org.drinkless.tdlib.TdApi" }
+            ?.find { it.qualifiedName == "org.drinkless.tdlib.TdApi" }
             ?: throw IllegalArgumentException("Provided source doesn't contain TdApi class")
 
         val submodules: MutableList<List<IrClass>> = mutableListOf()
@@ -197,7 +197,7 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
                     ).apply {
                         val instanceGetterInterfaceType = irTypeReference(
                             referencedClassName = newPackage + "." + namePrefix +
-                                    irClass.name.substringAfterLast(".") + ".InstanceGetter"
+                                    irClass.simpleName + ".InstanceGetter"
                         ).apply {
                             nullable(false)
                         }.build()
@@ -205,7 +205,7 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
                         val instanceGetterIdentifierExpression = irIdentifierExpression(
                             selector = irLiteralExpression(
                                 value = "dependencies." + namePrefixLower
-                                        + irClass.name.substringAfterLast(".") + "InstanceGetter",
+                                        + irClass.simpleName + "InstanceGetter",
                             ).build()
                         ).build()
 
@@ -312,7 +312,10 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
             }
         }.build()
 
-        return irClass(name = className).apply {
+        return irClass(
+            qualifiedName = "$newPackage.$className",
+            simpleName = className,
+        ).apply {
             visibility(kotlinPublicVisibility())
             addMethod(primaryConstructor)
             addLanguageProperty(KtTokens.DATA_KEYWORD.value, true)
@@ -324,10 +327,10 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
 
         val constructorParameters = submodule.map { irClass ->
             irParameter(
-                name = namePrefixLower + irClass.name.substringAfterLast(".") + "InstanceGetter",
+                name = namePrefixLower + irClass.simpleName + "InstanceGetter",
                 type = irTypeReference(
                     referencedClassName = newPackage + "." + namePrefix +
-                            irClass.name.substringAfterLast(".") + ".InstanceGetter",
+                            irClass.simpleName + ".InstanceGetter",
                 ).apply {
                     nullable(false)
                 }.build()
@@ -350,7 +353,10 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
             }
         }.build()
 
-        return irClass(name = className).apply {
+        return irClass(
+            qualifiedName = "$newPackage.$className",
+            simpleName = className,
+        ).apply {
             visibility(kotlinPublicVisibility())
             addMethod(primaryConstructor)
             addLanguageProperty(KtTokens.DATA_KEYWORD.value, true)

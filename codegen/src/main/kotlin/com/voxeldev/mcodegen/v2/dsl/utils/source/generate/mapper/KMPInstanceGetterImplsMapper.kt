@@ -27,7 +27,6 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irTypeReference
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule.KOTLIN_FILE_PACKAGE
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.builders.irLambdaExpression
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.builders.irNullSafeExpression
-import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_CLASS_SIMPLE_NAME
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_SAFE_TYPE_CAST
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapperBaseImpl
@@ -58,7 +57,7 @@ class KMPInstanceGetterImplsMapper internal constructor(
 
         val tdApi = source.declarations
             .filterIsInstance<IrClass>()
-            .find { it.name == "org.drinkless.tdlib.TdApi" }
+            .find { it.qualifiedName == "org.drinkless.tdlib.TdApi" }
             ?: throw IllegalArgumentException("Provided source doesn't contain TdApi class")
 
         tdApi.nestedClasses.forEach { irClass ->
@@ -66,19 +65,18 @@ class KMPInstanceGetterImplsMapper internal constructor(
                 return@forEach
             }
 
-            val sourceClassSimpleName = irClass.languageProperties[KT_CLASS_SIMPLE_NAME] as? String ?: irClass.name
-
-            val commonInterfaceName = namePrefix + sourceClassSimpleName
+            val commonInterfaceName = namePrefix + irClass.simpleName
 
             val instanceGetterImpl = irClass(
-                name = commonInterfaceName + "InstanceGetterImpl"
+                qualifiedName = "${newPackage}.${commonInterfaceName}InstanceGetterImpl",
+                simpleName = commonInterfaceName + "InstanceGetterImpl"
             ).apply {
                 kind(IrClassKind.IrClassClassKind)
                 visibility(irClass.visibility)
 
                 addSuperClass(
                     irSuperClass(
-                        superClassName = convertClassName(sourceClassSimpleName, newPackage, namePrefix)
+                        superClassName = convertClassName(irClass.simpleName, newPackage, namePrefix)
                                 + ".InstanceGetter",
                         kind = IrClassKind.IrInterfaceClassKind,
                     ).build()
@@ -109,7 +107,7 @@ class KMPInstanceGetterImplsMapper internal constructor(
 
                     val bodyReturnStatement = irReturnStatement().apply {
                         val constructorCall = irObjectCreationExpression(
-                            className = "org.drinkless.tdlib.TdApi.$sourceClassSimpleName",
+                            className = "org.drinkless.tdlib.TdApi.${irClass.simpleName}",
                         ).apply {
                             allFields.forEach { field ->
                                 addConstructorArg(
@@ -145,7 +143,7 @@ class KMPInstanceGetterImplsMapper internal constructor(
 
                         val bodyReturnStatement = irReturnStatement().apply {
                             val constructorCall = irObjectCreationExpression(
-                                className = "org.drinkless.tdlib.TdApi.$sourceClassSimpleName",
+                                className = "org.drinkless.tdlib.TdApi.${irClass.simpleName}",
                             ).build()
 
                             expression(constructorCall)

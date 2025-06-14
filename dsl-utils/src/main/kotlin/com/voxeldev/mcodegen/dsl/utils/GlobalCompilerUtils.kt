@@ -21,7 +21,7 @@ import java.io.IOException
 object GlobalCompilerUtils {
 
     // Source roots allows the compiler to get additional info about the Kotlin code being examined.
-    // It gives several benefits (e.g. actual IrClass will be used for superclasses instead of the IrClassStub),
+    // It gives several benefits (e.g. allows to get inferred types),
     //  but increases analysis time (depending on the amount of provided source roots files).
     // Any directory with .kt source files can be added as a source root, for example, sources of a used library.
     private val ktSourceRoots = mutableListOf<File>()

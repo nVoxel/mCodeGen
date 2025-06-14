@@ -20,7 +20,6 @@ import com.voxeldev.mcodegen.dsl.ir.builders.irSuperClass
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeReference
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule.KOTLIN_FILE_PACKAGE
-import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_CLASS_SIMPLE_NAME
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapperBaseImpl
 import com.voxeldev.mcodegen.v1.GlobalConstants
@@ -50,14 +49,15 @@ class KMPCommonInterfacesMapper internal constructor(
 
         val tdApi = source.declarations
             .filterIsInstance<IrClass>()
-            .find { it.name == "org.drinkless.tdlib.TdApi" }
+            .find { it.qualifiedName == "org.drinkless.tdlib.TdApi" }
             ?: throw IllegalArgumentException("Provided source doesn't contain TdApi class")
 
         tdApi.nestedClasses.forEach { irClass ->
-            val commonInterfaceName = namePrefix + irClass.languageProperties[KT_CLASS_SIMPLE_NAME] as? String
+            val commonInterfaceName = namePrefix + irClass.simpleName
 
             val commonInterface = irClass(
-                name = commonInterfaceName
+                qualifiedName = "${newPackage}.${commonInterfaceName}",
+                simpleName = commonInterfaceName,
             ).apply {
                 kind(IrClassKind.IrInterfaceClassKind)
                 visibility(irClass.visibility)
@@ -114,7 +114,10 @@ class KMPCommonInterfacesMapper internal constructor(
                     }
                 }
 
-                val instanceGetter = irClass("InstanceGetter").apply {
+                val instanceGetter = irClass(
+                    qualifiedName = "${newPackage}.${commonInterfaceName}.InstanceGetter",
+                    simpleName = "InstanceGetter",
+                ).apply {
                     kind(IrClassKind.IrInterfaceClassKind)
                     visibility(irClass.visibility)
 

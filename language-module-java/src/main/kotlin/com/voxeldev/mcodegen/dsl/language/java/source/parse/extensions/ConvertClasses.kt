@@ -17,8 +17,6 @@ import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.com.intellij.psi.PsiModifier
 
-const val JAVA_CLASS_SIMPLE_NAME = "simpleName"
-
 context(JavaModule, ScenarioScope)
 internal fun convertClasses(psiClasses: Array<PsiClass>, irFileBuilder: IrFileBuilder) {
     psiClasses.forEach { psiClass ->
@@ -28,11 +26,13 @@ internal fun convertClasses(psiClasses: Array<PsiClass>, irFileBuilder: IrFileBu
 
 context(JavaModule, ScenarioScope)
 private fun convertClass(psiClass: PsiClass): IrClass {
-    val className = psiClass.qualifiedName ?: "Ir:UnnamedClass"
+    val classSimpleName = psiClass.name ?: "Ir:UnnamedClass"
+    val classQualifiedName = psiClass.qualifiedName ?: "Ir:UnnamedClass"
 
-    val irClassBuilder = irClass(className)
-
-    irClassBuilder.addLanguageProperty(JAVA_CLASS_SIMPLE_NAME, psiClass.name ?: "Ir:UnnamedClass")
+    val irClassBuilder = irClass(
+        qualifiedName = classQualifiedName,
+        simpleName = classSimpleName,
+    )
 
     irClassBuilder.kind(
         when {

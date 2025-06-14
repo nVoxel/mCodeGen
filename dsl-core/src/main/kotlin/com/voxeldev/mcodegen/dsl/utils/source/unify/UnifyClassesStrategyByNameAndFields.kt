@@ -38,7 +38,7 @@ class UnifyClassesStrategyByNameAndFields :
             .map { irFile ->
                 irFile.declarations
                     .filterIsInstance<IrClass>()
-                    .associateBy { it.name }
+                    .associateBy { it.getQualifiedNameIfPresent() }
             }
 
         // Iterate through classes in the first source, keeping only those
@@ -46,7 +46,7 @@ class UnifyClassesStrategyByNameAndFields :
         return sources.first().declarations
             .filterIsInstance<IrClass>()
             .mapNotNull { irClass ->
-                val matches = classesHashMaps.mapNotNull { it[irClass.name] }
+                val matches = classesHashMaps.mapNotNull { it[irClass.getQualifiedNameIfPresent()] }
                 if (matches.size < classesHashMaps.size) return@mapNotNull null
 
                 val allMatches = listOf(irClass) + matches
@@ -87,10 +87,10 @@ class UnifyClassesStrategyByNameAndFields :
 
         val nestedHashMaps = matchingClasses
             .drop(1)
-            .map { it.nestedClasses.associateBy { nested -> nested.name } }
+            .map { it.nestedClasses.associateBy { nested -> nested.getQualifiedNameIfPresent() } }
 
         return matchingClasses.first().nestedClasses.mapNotNull { nested ->
-            val matches = nestedHashMaps.mapNotNull { it[nested.name] }
+            val matches = nestedHashMaps.mapNotNull { it[nested.getQualifiedNameIfPresent()] }
             if (matches.size < nestedHashMaps.size) return@mapNotNull null
 
             val allMatches = listOf(nested) + matches
@@ -106,7 +106,8 @@ class UnifyClassesStrategyByNameAndFields :
         commonFields: List<IrField>,
         commonNestedClasses: List<IrClass>,
     ): IrClass = IrClass(
-        name = irClass.name,
+        qualifiedName = irClass.qualifiedName,
+        simpleName = irClass.simpleName,
         kind = irClass.kind,
         visibility = irClass.visibility,
         typeParameters = irClass.typeParameters,

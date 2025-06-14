@@ -13,29 +13,26 @@ import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.ir.IrObjectClassKind
-import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_CLASS_SIMPLE_NAME
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_SUPERCLASS_CTOR_PARAMETERS
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import org.jetbrains.kotlin.lexer.KtTokens
 
 context(KotlinModule, ScenarioScope)
 internal fun convertClass(irClass: IrClass): TypeSpec {
-    val name = irClass.languageProperties[KT_CLASS_SIMPLE_NAME] as? String ?: irClass.name
-
     val poetClassBuilder = when (irClass.kind) {
-        is IrClassClassKind -> TypeSpec.classBuilder(name)
+        is IrClassClassKind -> TypeSpec.classBuilder(irClass.simpleName)
 
-        is IrInterfaceClassKind -> TypeSpec.interfaceBuilder(name)
+        is IrInterfaceClassKind -> TypeSpec.interfaceBuilder(irClass.simpleName)
 
-        is IrEnumClassKind -> TypeSpec.enumBuilder(name)
+        is IrEnumClassKind -> TypeSpec.enumBuilder(irClass.simpleName)
 
-        is IrAnnotationClassKind -> TypeSpec.annotationBuilder(name)
+        is IrAnnotationClassKind -> TypeSpec.annotationBuilder(irClass.simpleName)
 
         is IrObjectClassKind -> {
             if (irClass.languageProperties[KtTokens.COMPANION_KEYWORD.value] == true) {
-                TypeSpec.companionObjectBuilder(name)
+                TypeSpec.companionObjectBuilder(irClass.simpleName)
             } else {
-                TypeSpec.objectBuilder(name)
+                TypeSpec.objectBuilder(irClass.simpleName)
             }
         }
 

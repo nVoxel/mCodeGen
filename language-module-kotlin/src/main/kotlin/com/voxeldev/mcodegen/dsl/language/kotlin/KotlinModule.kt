@@ -39,9 +39,9 @@ object KotlinModule : LanguageModule {
     }
 
     const val KOTLIN_INDENT_PROPERTY_NAME = "indent"
-    private const val KOTLIN_INDENT_PROPERTY_DEFAULT_VALUE = "  "
+    private const val KOTLIN_INDENT_PROPERTY_DEFAULT_VALUE = "    "
 
-    const val KOTLIN_FILE_PACKAGE = "package"
+    const val KOTLIN_FILE_PACKAGE = "jvmPackage"
 
     override val languageName: String = "kotlin"
 
@@ -159,7 +159,7 @@ object KotlinModule : LanguageModule {
         val filePackage = mappedSource.languageProperties[KOTLIN_FILE_PACKAGE] as? String
             ?: throw IllegalStateException("Package not found in the IrFile for Kotlin")
 
-        val poetFileBuilder = FileSpec.builder(filePackage, mappedSource.name.removeSuffix(".kt"))
+        val poetFileBuilder = FileSpec.builder(filePackage, mappedSource.name.substringBeforeLast("."))
 
         mappedSource.declarations.forEach { declaration ->
             when (declaration) {
@@ -185,9 +185,7 @@ object KotlinModule : LanguageModule {
         poetFileBuilder.indent(indentProperty ?: KOTLIN_INDENT_PROPERTY_DEFAULT_VALUE)
 
         val outputPath = Path(scenarioConfiguration.outputDir, applyToBasePath)
-        val outputFile = File(outputPath.toString())
-
-        poetFileBuilder.build().writeTo(outputFile)
+        poetFileBuilder.build().writeTo(outputPath)
     }
 
     context(ScenarioScope)

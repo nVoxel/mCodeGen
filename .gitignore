@@ -4,7 +4,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Generated files ###
 generated
+language-test/results
 
 ### IntelliJ IDEA ###
 .idea/

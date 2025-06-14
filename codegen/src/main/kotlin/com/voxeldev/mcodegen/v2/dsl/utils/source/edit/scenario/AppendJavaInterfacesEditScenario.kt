@@ -41,7 +41,7 @@ class AppendJavaInterfacesEditScenario internal constructor(
     }
 
     private fun getMap(irClass: IrClass): Map<String, Set<String>> {
-        val classSimpleName = irClass.name.split(".").last()
+        val classSimpleName = irClass.simpleName
         val map = hashMapOf<String, Set<String>>()
 
         if (classSimpleName !in ignoredClasses) {

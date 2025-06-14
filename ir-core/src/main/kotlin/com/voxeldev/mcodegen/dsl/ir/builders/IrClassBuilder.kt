@@ -18,13 +18,19 @@ import com.voxeldev.mcodegen.dsl.ir.IrVisibility
  * Creates a new [IrClassBuilder] instance with the given name.
  * This is the entry point for building an [IrClass] using the DSL.
  */
-fun irClass(name: String): IrClassBuilder = IrClassBuilder(name)
+fun irClass(
+    simpleName: String,
+    qualifiedName: String? = null,
+): IrClassBuilder = IrClassBuilder(simpleName, qualifiedName)
 
 /**
  * Builder class for creating [IrClass] instances.
  * Provides a fluent API for constructing class definitions with default values.
  */
-class IrClassBuilder internal constructor(private val name: String) : IrElementBuilder() {
+class IrClassBuilder internal constructor(
+    private val simpleName: String,
+    private var qualifiedName: String?,
+) : IrElementBuilder() {
     private var kind: IrClassKind = IrClassClassKind
     private var visibility: IrVisibility? = null
     private var typeParameters: MutableList<IrTypeParameter> = mutableListOf()
@@ -68,7 +74,8 @@ class IrClassBuilder internal constructor(private val name: String) : IrElementB
 
     fun build(): IrClass {
         return IrClass(
-            name = name,
+            qualifiedName = qualifiedName,
+            simpleName = simpleName,
             kind = kind,
             visibility = requireNotNull(visibility),
             typeParameters = typeParameters,

@@ -6,7 +6,8 @@ package com.voxeldev.mcodegen.dsl.ir
  * including its name, visibility, methods, and other properties.
  */
 open class IrClass(
-    val name: String,
+    val qualifiedName: String?,
+    val simpleName: String,
     val kind: IrClassKind,
     val visibility: IrVisibility,
     val typeParameters: List<IrTypeParameter>,
@@ -18,7 +19,16 @@ open class IrClass(
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()
-) : IrElement
+) : IrElement {
+
+    /**
+     * @return Qualified class name or simple class name if qualified is null
+     */
+    open fun getQualifiedNameIfPresent(): String = qualifiedName ?: run {
+        println("IrClass qualified name was null: $simpleName")
+        simpleName
+    }
+}
 
 interface IrClassKind {
     data object IrClassClassKind : IrClassKind

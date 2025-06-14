@@ -13,8 +13,8 @@ fun main() {
     val scenarioManager = baseScenarioManager()
 
     val testsScenarioConfiguration = baseScenarioConfiguration {
-        setSourcesDir("../../Downloads/")
-        setOutputDir("generated")
+        setSourcesDir("language-test/sources")
+        setOutputDir("language-test/results")
     }
 
     val testsScenario = baseScenario(
@@ -34,63 +34,63 @@ fun main() {
 
 context(ScenarioScope)
 private fun runJavaTests() {
-    val testConstructorsIR: IrFile = JavaModule.parse(sourcePath = "test_java_constructors.java")
-    JavaModule.generate(testConstructorsIR, "test", listOf())
+    val testConstructorsIR: IrFile = JavaModule.parse(sourcePath = "java/test_java_constructors.java")
+    JavaModule.generate(testConstructorsIR, "jvm", listOf())
 
-    val testInitializersIR: IrFile = JavaModule.parse(sourcePath = "test_java_initializers.java")
-    JavaModule.generate(testInitializersIR, "test", listOf())
+    val testInitializersIR: IrFile = JavaModule.parse(sourcePath = "java/test_java_initializers.java")
+    JavaModule.generate(testInitializersIR, "jvm", listOf())
 
-    val testExpressionsIR: IrFile = JavaModule.parse(sourcePath = "test_java_expressions.java")
-    JavaModule.generate(testExpressionsIR, "test", listOf())
+    val testExpressionsIR: IrFile = JavaModule.parse(sourcePath = "java/test_java_expressions.java")
+    JavaModule.generate(testExpressionsIR, "jvm", listOf())
 
-    val testAnnotationsIR: IrFile = JavaModule.parse(sourcePath = "test_java_annotations.java")
-    JavaModule.generate(testAnnotationsIR, "test", listOf())
+    val testAnnotationsIR: IrFile = JavaModule.parse(sourcePath = "java/test_java_annotations.java")
+    JavaModule.generate(testAnnotationsIR, "jvm", listOf())
 
-    val testStatementsIR: IrFile = JavaModule.parse(sourcePath = "test_java_statements.java")
-    JavaModule.generate(testStatementsIR, "test", listOf())
+    val testStatementsIR: IrFile = JavaModule.parse(sourcePath = "java/test_java_statements.java")
+    JavaModule.generate(testStatementsIR, "jvm", listOf())
 
-    val testGenericsIR: IrFile = JavaModule.parse(sourcePath = "test_java_generic.java")
-    JavaModule.generate(testGenericsIR, "test", listOf())
+    val testGenericsIR: IrFile = JavaModule.parse(sourcePath = "java/test_java_generic.java")
+    JavaModule.generate(testGenericsIR, "jvm", listOf())
 }
 
 context(ScenarioScope)
 private fun runKotlinTests() {
     val kotlinTests = KotlinModule.parseMultiple(
-        "testStatementsIR" to "test_kotlin_statements.kt",
-        "testConstructorsIR" to "test_kotlin_constructors.kt",
-        "testExpressionsIR" to "test_kotlin_expressions.kt",
-        "testPropertiesIR" to "test_kotlin_properties.kt",
-        "testInheritanceIR" to "test_kotlin_inheritance.kt",
-        "testInitializersIR" to "test_kotlin_initializers.kt",
-        "testAnnotationsIR" to "test_kotlin_annotations.kt",
-        "testGenericsIR" to "test_kotlin_generic.kt",
-        "testCastIR" to "test_kotlin_cast.kt",
+        "testStatementsIR" to "kotlin/test_kotlin_statements.kt",
+        "testConstructorsIR" to "kotlin/test_kotlin_constructors.kt",
+        "testExpressionsIR" to "kotlin/test_kotlin_expressions.kt",
+        "testPropertiesIR" to "kotlin/test_kotlin_properties.kt",
+        "testInheritanceIR" to "kotlin/test_kotlin_inheritance.kt",
+        "testInitializersIR" to "kotlin/test_kotlin_initializers.kt",
+        "testAnnotationsIR" to "kotlin/test_kotlin_annotations.kt",
+        "testGenericsIR" to "kotlin/test_kotlin_generic.kt",
+        "testCastIR" to "kotlin/test_kotlin_cast.kt",
     )
 
     val testStatementsIR by kotlinTests
-    KotlinModule.generate(testStatementsIR, "test", listOf())
+    KotlinModule.generate(testStatementsIR, "jvm", listOf())
 
     val testConstructorsIR by kotlinTests
-    KotlinModule.generate(testConstructorsIR, "test", listOf())
+    KotlinModule.generate(testConstructorsIR, "jvm", listOf())
 
     val testExpressionsIR by kotlinTests
-    KotlinModule.generate(testExpressionsIR, "test", listOf())
+    KotlinModule.generate(testExpressionsIR, "jvm", listOf())
 
     val testPropertiesIR by kotlinTests
-    KotlinModule.generate(testPropertiesIR, "test", listOf())
+    KotlinModule.generate(testPropertiesIR, "jvm", listOf())
 
     val testInheritanceIR by kotlinTests
-    KotlinModule.generate(testInheritanceIR, "test", listOf())
+    KotlinModule.generate(testInheritanceIR, "jvm", listOf())
 
     val testInitializersIR by kotlinTests
-    KotlinModule.generate(testInitializersIR, "test", listOf())
+    KotlinModule.generate(testInitializersIR, "jvm", listOf())
 
     val testAnnotationsIR by kotlinTests
-    KotlinModule.generate(testAnnotationsIR, "test", listOf())
+    KotlinModule.generate(testAnnotationsIR, "jvm", listOf())
 
     val testGenericsIR by kotlinTests
-    KotlinModule.generate(testGenericsIR, "test", listOf())
+    KotlinModule.generate(testGenericsIR, "jvm", listOf())
 
     val testCastIR by kotlinTests
-    KotlinModule.generate(testCastIR, "test", listOf())
+    KotlinModule.generate(testCastIR, "jvm", listOf())
 }

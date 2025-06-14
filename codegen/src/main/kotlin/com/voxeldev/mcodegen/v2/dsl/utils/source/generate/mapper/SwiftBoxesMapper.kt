@@ -9,7 +9,6 @@ import com.voxeldev.mcodegen.dsl.ir.IrTypeArray
 import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
 import com.voxeldev.mcodegen.dsl.ir.IrUnaryExpression
-import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.KT_CLASS_SIMPLE_NAME
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
 import com.voxeldev.mcodegen.v2.constants.TdCommonScenarioConstants
 import io.outfoxx.swiftpoet.CodeBlock
@@ -43,17 +42,16 @@ fun mapSwiftBoxes(
 ) {
     val commonClassesList = commonClasses.declarations
         .filterIsInstance<IrClass>()
-        .find { it.name == "org.drinkless.tdlib.TdApi" }
+        .find { it.qualifiedName == "org.drinkless.tdlib.TdApi" }
         ?.nestedClasses
         ?: throw IllegalArgumentException("Provided source doesn't contain TdApi class")
 
     val file = FileSpec.builder(outputFileName)
 
     commonClassesList.forEach { commonClass ->
-        val simpleName = commonClass.languageProperties[KT_CLASS_SIMPLE_NAME] as? String ?: commonClass.name
-        val boxedClassName = "${namePrefix}${simpleName}${nameSuffix}"
+        val boxedClassName = "${namePrefix}${commonClass.simpleName}${nameSuffix}"
 
-        if (simpleName in removedClassNames) {
+        if (commonClass.simpleName in removedClassNames) {
             return@forEach
         }
 
@@ -63,12 +61,12 @@ fun mapSwiftBoxes(
         boxedClass.addModifiers(Modifier.FINAL)
 
         boxedClass.addSuperType(DeclaredTypeName.typeName(".TdBoxBase"))
-        boxedClass.addSuperType(DeclaredTypeName.typeName("TGDriveKit.${namePrefix}${simpleName}"))
+        boxedClass.addSuperType(DeclaredTypeName.typeName("TGDriveKit.${namePrefix}${commonClass.simpleName}"))
 
         boxedClass.addProperty(
             PropertySpec.builder(
                 name = "value",
-                type = DeclaredTypeName.typeName("TDLibKit.$simpleName"),
+                type = DeclaredTypeName.typeName("TDLibKit.${commonClass.simpleName}"),
                 Modifier.PRIVATE
             ).build()
         )
@@ -95,7 +93,7 @@ fun mapSwiftBoxes(
                 addParameter(
                     label = "_",
                     name = "value",
-                    type = DeclaredTypeName.typeName("TDLibKit.$simpleName"),
+                    type = DeclaredTypeName.typeName("TDLibKit.${commonClass.simpleName}"),
                 )
                 addStatement("self.value = value")
             }.build()
@@ -125,7 +123,7 @@ fun mapSwiftBoxes(
 
                     val codeBlock = CodeBlock.builder()
                     codeBlock.add("self.init(\n%>")
-                    codeBlock.add("%T(\n%>", DeclaredTypeName.typeName("TDLibKit.$simpleName"))
+                    codeBlock.add("%T(\n%>", DeclaredTypeName.typeName("TDLibKit.${commonClass.simpleName}"))
                     fields.forEach { field ->
                         codeBlock.add("${field.name}: ${field.name},\n")
                     }
@@ -177,23 +175,24 @@ fun mapSwiftBoxes(
         // endregion
 
         // region extension setup
-        val tdLibKitExtension = ExtensionSpec.builder(DeclaredTypeName.typeName("TDLibKit.$simpleName")).apply {
-            addSuperType(DeclaredTypeName.typeName(".TdWrappable"))
-            addProperty(
-                PropertySpec.varBuilder(
-                    name = "asKtObject",
-                    type = DeclaredTypeName.typeName("TGDriveKit.TdObject"),
-                    Modifier.PUBLIC
-                ).apply {
-                    val boxedClass = DeclaredTypeName.typeName(".${boxedClassName}")
-                    getter(
-                        FunctionSpec.getterBuilder().apply {
-                            addStatement("%T(self)", boxedClass)
-                        }.build()
-                    )
-                }.build()
-            )
-        }
+        val tdLibKitExtension =
+            ExtensionSpec.builder(DeclaredTypeName.typeName("TDLibKit.${commonClass.simpleName}")).apply {
+                addSuperType(DeclaredTypeName.typeName(".TdWrappable"))
+                addProperty(
+                    PropertySpec.varBuilder(
+                        name = "asKtObject",
+                        type = DeclaredTypeName.typeName("TGDriveKit.TdObject"),
+                        Modifier.PUBLIC
+                    ).apply {
+                        val boxedClass = DeclaredTypeName.typeName(".${boxedClassName}")
+                        getter(
+                            FunctionSpec.getterBuilder().apply {
+                                addStatement("%T(self)", boxedClass)
+                            }.build()
+                        )
+                    }.build()
+                )
+            }
         // endregion
 
         file.addType(boxedClass.build())
