@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation(libs.swiftpoet)
+
     implementation(projects.dslCore)
     implementation(projects.dslUtils)
 }

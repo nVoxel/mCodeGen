@@ -9,6 +9,7 @@ dependencies {
 
     implementation(libs.javapoet)
     implementation(libs.kotlinpoet)
+    implementation(libs.swiftpoet)
 
     implementation(libs.jna)
     implementation(libs.javaparser)

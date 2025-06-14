@@ -15,7 +15,9 @@ import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AddJavaImportEditStep
 import com.voxeldev.mcodegen.v2.dsl.utils.source.edit.step.AppendJavaInterfacesEditStepHandler
 import com.voxeldev.mcodegen.v2.dsl.utils.source.generate.mapper.kmpCommonInterfacesMapper
 import com.voxeldev.mcodegen.v2.dsl.utils.source.generate.mapper.kmpInstanceGetterImplsMapper
+import com.voxeldev.mcodegen.v2.dsl.utils.source.generate.mapper.kmpInstanceGettersIosKoinModulesMapper
 import com.voxeldev.mcodegen.v2.dsl.utils.source.generate.mapper.kmpInstanceGettersKoinModulesMapper
+import com.voxeldev.mcodegen.v2.dsl.utils.source.generate.mapper.mapSwiftBoxes
 
 fun main() {
     val scenarioManager = baseScenarioManager()
@@ -41,6 +43,8 @@ fun main() {
             strategy = UnifyClassesStrategyByNameAndFields(),
             androidSourceIR, desktopSourceIR, /*iosSourceIR*/
         )
+
+        mapSwiftBoxes(commonClasses)
 
         KotlinModule.generate(
             source = commonClasses,
@@ -70,6 +74,12 @@ fun main() {
             sources = listOf(commonClasses),
             applyToBasePath = "desktop",
             mappers = listOf(kmpInstanceGettersKoinModulesMapper()),
+        )
+
+        KotlinModule.generateMultiple(
+            sources = listOf(commonClasses),
+            applyToBasePath = "ios",
+            mappers = listOf(kmpInstanceGettersIosKoinModulesMapper()),
         )
 
         JavaModule.edit(
