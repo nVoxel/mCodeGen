@@ -1,6 +1,7 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions
 
 import com.voxeldev.mcodegen.dsl.ir.IrType
+import com.voxeldev.mcodegen.dsl.ir.IrTypeArray
 import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
@@ -46,6 +47,19 @@ private val primitiveFqNames = mapOf(
     "kotlin.Char" to IrTypePrimitive.PrimitiveType.Char(),
     "kotlin.Float" to IrTypePrimitive.PrimitiveType.Float(),
     "kotlin.Double" to IrTypePrimitive.PrimitiveType.Double(),
+)
+
+private const val kotlinArrayFqName = "kotlin.Array"
+
+private val kotlinPrimitiveArrayFqNames = mapOf(
+    "kotlin.BooleanArray" to IrTypePrimitive.PrimitiveType.Boolean(),
+    "kotlin.ByteArray" to IrTypePrimitive.PrimitiveType.Byte(),
+    "kotlin.ShortArray" to IrTypePrimitive.PrimitiveType.Short(),
+    "kotlin.IntArray" to IrTypePrimitive.PrimitiveType.Int(),
+    "kotlin.LongArray" to IrTypePrimitive.PrimitiveType.Long(),
+    "kotlin.CharArray" to IrTypePrimitive.PrimitiveType.Char(),
+    "kotlin.FloatArray" to IrTypePrimitive.PrimitiveType.Float(),
+    "kotlin.DoubleArray" to IrTypePrimitive.PrimitiveType.Double(),
 )
 
 // types received from the BindingContext
@@ -171,7 +185,6 @@ private fun convertUserType(
         return genericParam.copy(isNullable = isNullable)
     }
 
-    //  ----------  Regular class  ----------
     val projections = userType.typeArguments
     val irTypeArgs = projections.map { proj ->
         when (proj.projectionKind) {
@@ -189,6 +202,26 @@ private fun convertUserType(
         }
     }
 
+    //  ----------  Primitive type array  ----------
+    kotlinPrimitiveArrayFqNames[fqName]?.let { primArrayElementType ->
+        return IrTypeArray(
+            elementType = irTypePrimitive(primitiveType = primArrayElementType).apply {
+                nullable(false)
+            }.build(),
+            isNullable = isNullable,
+        )
+    }
+
+    //  ----------  Reference type array  ----------
+    if (fqName == kotlinArrayFqName) {
+        require(irTypeArgs.size == 1) { "Kotlin reference type array should have exactly one type parameter" }
+        return IrTypeArray(
+            elementType = irTypeArgs.first(),
+            isNullable = isNullable,
+        )
+    }
+
+    //  ----------  Regular class  ----------
     return IrTypeReference(
         referencedClassSimpleName = simpleName,
         referencedClassQualifiedName = fqName,
