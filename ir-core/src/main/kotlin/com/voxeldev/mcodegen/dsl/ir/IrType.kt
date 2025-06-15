@@ -9,13 +9,19 @@ interface IrType : IrElement {
 }
 
 data class IrTypeReference(
-    val referencedClassName: String,
+    val referencedClassSimpleName: String,
+    val referencedClassQualifiedName: String?,
     val typeParameters: List<IrType>,
     override val isNullable: Boolean = true,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrType {
+
+    /**
+     * @return Qualified referenced class name or simple referenced class name if qualified is null
+     */
+    fun getQualifiedNameIfPresent(): String = referencedClassQualifiedName ?: referencedClassSimpleName
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -24,7 +30,8 @@ data class IrTypeReference(
         other as IrTypeReference
 
         if (isNullable != other.isNullable) return false
-        if (referencedClassName != other.referencedClassName) return false
+        if (referencedClassSimpleName != other.referencedClassSimpleName) return false
+        if (referencedClassQualifiedName != other.referencedClassQualifiedName) return false
         if (typeParameters != other.typeParameters) return false
         if (annotations != other.annotations) return false
 
@@ -33,7 +40,8 @@ data class IrTypeReference(
 
     override fun hashCode(): Int {
         var result = isNullable.hashCode()
-        result = 31 * result + referencedClassName.hashCode()
+        result = 31 * result + referencedClassSimpleName.hashCode()
+        result = 31 * result + referencedClassQualifiedName.hashCode()
         result = 31 * result + typeParameters.hashCode()
         result = 31 * result + annotations.hashCode()
         return result

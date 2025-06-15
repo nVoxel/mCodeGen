@@ -95,7 +95,7 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
 
         val moduleMethod = irMethod(
             name = moduleName,
-            returnType = irTypeReference("org.koin.core.module.Module").apply {
+            returnType = irTypeReference(referencedClassSimpleName = "org.koin.core.module.Module").apply {
                 nullable(false)
             }.build(),
         ).apply {
@@ -104,7 +104,8 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
             val dependenciesParameter = irParameter(
                 name = "dependencies",
                 type = irTypeReference(
-                    referencedClassName = "$newPackage.InstanceGettersModuleDependencies",
+                    referencedClassSimpleName = "InstanceGettersModuleDependencies",
+                    referencedClassQualifiedName = "$newPackage.InstanceGettersModuleDependencies",
                 ).apply {
                     nullable(false)
                 }.build()
@@ -196,7 +197,8 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
                         methodName = "single",
                     ).apply {
                         val instanceGetterInterfaceType = irTypeReference(
-                            referencedClassName = newPackage + "." + namePrefix +
+                            referencedClassSimpleName = namePrefix + irClass.simpleName + ".InstanceGetter",
+                            referencedClassQualifiedName = newPackage + "." + namePrefix +
                                     irClass.simpleName + ".InstanceGetter"
                         ).apply {
                             nullable(false)
@@ -253,7 +255,8 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
                 parameter = irParameter(
                     name = "dependencies",
                     type = irTypeReference(
-                        referencedClassName = "$newPackage.InstanceGettersModule${moduleIndex}Dependencies",
+                        referencedClassSimpleName = "InstanceGettersModule${moduleIndex}Dependencies",
+                        referencedClassQualifiedName = "$newPackage.InstanceGettersModule${moduleIndex}Dependencies",
                     ).apply {
                         nullable(false)
                     }.build()
@@ -289,7 +292,8 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
             irParameter(
                 name = "instanceGettersModule${index}Dependencies",
                 type = irTypeReference(
-                    referencedClassName = "$newPackage.InstanceGettersModule${index}Dependencies"
+                    referencedClassSimpleName = "InstanceGettersModule${index}Dependencies",
+                    referencedClassQualifiedName = "$newPackage.InstanceGettersModule${index}Dependencies"
                 ).apply {
                     nullable(false)
                 }.build()
@@ -301,7 +305,8 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
         val primaryConstructor = irConstructor(
             name = className,
             returnType = irTypeReference(
-                referencedClassName = "$newPackage.$className"
+                referencedClassSimpleName = className,
+                referencedClassQualifiedName = "$newPackage.$className"
             ).build()
         ).apply {
             visibility(kotlinPublicVisibility())
@@ -329,7 +334,8 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
             irParameter(
                 name = namePrefixLower + irClass.simpleName + "InstanceGetter",
                 type = irTypeReference(
-                    referencedClassName = newPackage + "." + namePrefix +
+                    referencedClassSimpleName = namePrefix + irClass.simpleName + ".InstanceGetter",
+                    referencedClassQualifiedName = newPackage + "." + namePrefix +
                             irClass.simpleName + ".InstanceGetter",
                 ).apply {
                     nullable(false)
@@ -342,7 +348,8 @@ class KMPInstanceGettersIosKoinModulesMapper internal constructor(
         val primaryConstructor = irConstructor(
             name = className,
             returnType = irTypeReference(
-                referencedClassName = "$newPackage.$className"
+                referencedClassSimpleName = className,
+                referencedClassQualifiedName = "$newPackage.$className"
             ).build()
         ).apply {
             visibility(kotlinPublicVisibility())

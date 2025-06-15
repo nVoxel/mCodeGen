@@ -23,9 +23,13 @@ internal fun convertTypeParameter(psiTypeParameter: PsiTypeParameter): IrTypePar
             }
 
             else -> { // TODO: cases like <T : List<String>> are probably unsupported
-                val referencedClassName = referencedClass.qualifiedName ?: return@forEach
+                val referencedClassSimpleName = referencedClass.name ?: return@forEach
+                val referencedClassQualifiedName = referencedClass.qualifiedName ?: return@forEach
                 irTypeParameter.addExtendsType(
-                    extendsType = irTypeReference(referencedClassName).apply {
+                    extendsType = irTypeReference(
+                        referencedClassSimpleName = referencedClassSimpleName,
+                        referencedClassQualifiedName = referencedClassQualifiedName,
+                    ).apply {
                         addLanguageProperty(JAVA_PSI_CLASS, referencedClass)
                     }.build()
                 )

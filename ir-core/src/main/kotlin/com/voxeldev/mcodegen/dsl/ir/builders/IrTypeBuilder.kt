@@ -40,15 +40,25 @@ abstract class IrTypeBuilder : IrElementBuilder() {
 /**
  * Creates a new [IrTypeReferenceBuilder] instance with the given referenced class.
  */
-fun irTypeReference(referencedClassName: String): IrTypeReferenceBuilder =
-    IrTypeReferenceBuilder(referencedClassName)
+fun irTypeReference(
+    referencedClassSimpleName: String,
+    referencedClassQualifiedName: String? = null,
+): IrTypeReferenceBuilder =
+    IrTypeReferenceBuilder(referencedClassSimpleName, referencedClassQualifiedName)
 
 /**
  * Builder class for creating [IrTypeReference] instances.
  */
-class IrTypeReferenceBuilder(private val referencedClassName: String) : IrTypeBuilder() {
+class IrTypeReferenceBuilder(
+    private val referencedClassSimpleName: String,
+    private var referencedClassQualifiedName: String?,
+) : IrTypeBuilder() {
 
     private val typeParameters: MutableList<IrType> = mutableListOf()
+
+    fun referencedClassQualifiedName(referencedClassQualifiedName: String?) {
+        this.referencedClassQualifiedName = referencedClassQualifiedName
+    }
 
     fun addTypeParameter(type: IrType) {
         typeParameters.add(type)
@@ -57,7 +67,8 @@ class IrTypeReferenceBuilder(private val referencedClassName: String) : IrTypeBu
     fun build(): IrTypeReference {
         val properties = buildTypeProperties()
         return IrTypeReference(
-            referencedClassName = referencedClassName,
+            referencedClassSimpleName = referencedClassSimpleName,
+            referencedClassQualifiedName = referencedClassQualifiedName,
             typeParameters = typeParameters,
             isNullable = properties.isNullable,
             location = properties.location,

@@ -47,9 +47,13 @@ internal fun convertType(psiType: PsiType?): IrType {
 
                 irTypeGeneric(name = resolvedParameterName).build()
             } else {
-                val resolvedClassName = resolvedClass.qualifiedName ?: return getFallbackType(psiType)
+                val resolvedClassSimpleName = resolvedClass.name ?: return getFallbackType(psiType)
+                val resolvedClassQualifiedName = resolvedClass.qualifiedName ?: return getFallbackType(psiType)
 
-                irTypeReference(referencedClassName = resolvedClassName).apply {
+                irTypeReference(
+                    referencedClassSimpleName = resolvedClassSimpleName,
+                    referencedClassQualifiedName = resolvedClassQualifiedName
+                ).apply {
                     nullable(true)
                     addLanguageProperty(JAVA_PSI_CLASS, resolvedClass)
                     psiType.typeArguments()

@@ -60,7 +60,7 @@ internal fun convertType(irType: IrType): TypeName {
         is IrTypeGeneric -> TypeVariableName(irType.name)
 
         is IrTypeReference -> {
-            val className = ClassName.bestGuess(irType.referencedClassName)
+            val className = ClassName.bestGuess(irType.getQualifiedNameIfPresent())
             if (irType.typeParameters.isEmpty()) {
                 className
             } else {

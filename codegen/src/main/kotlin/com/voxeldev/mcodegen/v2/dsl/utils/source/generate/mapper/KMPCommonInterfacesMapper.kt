@@ -124,7 +124,7 @@ class KMPCommonInterfacesMapper internal constructor(
                     val getInstanceMethod = irMethod(
                         name = "getInstance",
                         returnType = irTypeReference(
-                            referencedClassName = commonInterfaceName,
+                            referencedClassSimpleName = commonInterfaceName,
                         ).apply {
                             nullable(false)
                         }.build()
@@ -151,7 +151,7 @@ class KMPCommonInterfacesMapper internal constructor(
                         val getInstanceEmptyMethod = irMethod(
                             name = "getInstance",
                             returnType = irTypeReference(
-                                referencedClassName = commonInterfaceName,
+                                referencedClassSimpleName = commonInterfaceName,
                             ).apply {
                                 nullable(false)
                             }.build()
@@ -180,7 +180,7 @@ class KMPCommonInterfacesMapper internal constructor(
     ): String = if (className == "java.lang.String") {
         "kotlin.String"
     } else {
-        "${packageName}.$namePrefix${className.substringAfterLast(".")}"
+        "${packageName}.${namePrefix}${className.substringAfterLast(".")}"
     }
 
     private fun convertType(
@@ -192,8 +192,9 @@ class KMPCommonInterfacesMapper internal constructor(
         return when (sourceType) {
             is IrTypeReference -> {
                 sourceType.copy(
-                    referencedClassName = convertClassName(
-                        className = sourceType.referencedClassName,
+                    referencedClassSimpleName = "${namePrefix}.${sourceType.referencedClassSimpleName}",
+                    referencedClassQualifiedName = convertClassName(
+                        className = sourceType.getQualifiedNameIfPresent(),
                         packageName = packageName,
                         namePrefix = namePrefix
                     ),

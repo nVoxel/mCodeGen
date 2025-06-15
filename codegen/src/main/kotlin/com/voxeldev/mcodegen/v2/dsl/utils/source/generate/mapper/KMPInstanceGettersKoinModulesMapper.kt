@@ -147,7 +147,8 @@ class KMPInstanceGettersKoinModulesMapper internal constructor(
                             methodName = "single",
                         ).apply {
                             val instanceGetterInterfaceType = irTypeReference(
-                                referencedClassName = newPackage + "." + namePrefix +
+                                referencedClassSimpleName = namePrefix + irClass.simpleName + ".InstanceGetter",
+                                referencedClassQualifiedName = newPackage + "." + namePrefix +
                                         irClass.simpleName + ".InstanceGetter"
                             ).apply {
                                 nullable(false)

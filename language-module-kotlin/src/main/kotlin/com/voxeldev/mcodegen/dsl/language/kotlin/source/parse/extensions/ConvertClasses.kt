@@ -220,7 +220,7 @@ private fun createSuperClassFromSuper(
                 preloadedTypeParameters
             ) as? IrTypeReference
         }
-        .find { superTypeReference -> superTypeReference.referencedClassName == superClassName }
+        .find { superTypeReference -> superTypeReference.getQualifiedNameIfPresent() == superClassName }
         ?: throw IllegalArgumentException("Unable to find superclass in ktClassOrObject by name")
 
     superAsType.typeParameters.forEach { typeParameter ->

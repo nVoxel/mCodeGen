@@ -1,7 +1,7 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions
 
-import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrType
+import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrTypePrimitive
 import com.voxeldev.mcodegen.dsl.ir.IrTypeReference
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeFunction
@@ -85,6 +85,7 @@ internal fun convertKotlinType(
 
     // -------------- Classes / interfaces / type aliases -------
     val classDesc = kotlinType.constructor.declarationDescriptor as? ClassDescriptor
+    val simpleName = classDesc?.name?.asString() ?: kotlinType.toString()   // fallback: render the type
     val fqName = classDesc?.fqNameSafe?.asString() ?: kotlinType.toString()   // fallback: render the type
 
     val irArgs = kotlinType.arguments.map { proj ->
@@ -101,7 +102,8 @@ internal fun convertKotlinType(
     }
 
     return IrTypeReference(
-        referencedClassName = fqName,
+        referencedClassSimpleName = simpleName,
+        referencedClassQualifiedName = fqName,
         typeParameters = irArgs,
         isNullable = isNullable
     )
@@ -186,7 +188,8 @@ private fun convertUserType(
     }
 
     return IrTypeReference(
-        referencedClassName = fqName ?: simpleName,
+        referencedClassSimpleName = simpleName,
+        referencedClassQualifiedName = fqName,
         typeParameters = irTypeArgs,
         isNullable = isNullable
     )

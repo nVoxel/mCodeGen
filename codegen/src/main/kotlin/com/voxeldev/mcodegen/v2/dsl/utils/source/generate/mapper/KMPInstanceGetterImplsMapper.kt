@@ -85,7 +85,7 @@ class KMPInstanceGetterImplsMapper internal constructor(
                 val getInstanceMethodImpl = irMethod(
                     name = "getInstance",
                     returnType = irTypeReference(
-                        referencedClassName = commonInterfaceName,
+                        referencedClassSimpleName = commonInterfaceName,
                     ).apply {
                         nullable(false)
                     }.build()
@@ -133,7 +133,7 @@ class KMPInstanceGetterImplsMapper internal constructor(
                     val getInstanceEmptyMethodImpl = irMethod(
                         name = "getInstance",
                         returnType = irTypeReference(
-                            referencedClassName = commonInterfaceName,
+                            referencedClassSimpleName = commonInterfaceName,
                         ).apply {
                             nullable(false)
                         }.build()
@@ -173,7 +173,7 @@ class KMPInstanceGetterImplsMapper internal constructor(
     ): String = if (className == "java.lang.String") {
         "kotlin.String"
     } else {
-        "${packageName}.$namePrefix${className.substringAfterLast(".")}"
+        "${packageName}.${namePrefix}${className.substringAfterLast(".")}"
     }
 
     // Expressions tree for type cast: https://miro.com/app/board/uXjVI0bO8W8=/
@@ -186,8 +186,9 @@ class KMPInstanceGetterImplsMapper internal constructor(
         return when (sourceType) {
             is IrTypeReference -> {
                 sourceType.copy(
-                    referencedClassName = convertClassName(
-                        className = sourceType.referencedClassName,
+                    referencedClassSimpleName = "${namePrefix}.${sourceType.referencedClassSimpleName}",
+                    referencedClassQualifiedName = convertClassName(
+                        className = sourceType.getQualifiedNameIfPresent(),
                         packageName = packageName,
                         namePrefix = namePrefix
                     ),
@@ -242,13 +243,13 @@ class KMPInstanceGetterImplsMapper internal constructor(
     private fun createTypeCast(
         variableName: String,
         irType: IrType,
-    ): IrExpression = if (irType is IrTypeReference && irType.referencedClassName != "java.lang.String") {
+    ): IrExpression = if (irType is IrTypeReference && irType.getQualifiedNameIfPresent() != "java.lang.String") {
         irCastExpression(
             expression = irIdentifierExpression(
                 selector = irLiteralExpression(variableName).build()
             ).build(),
             targetType = irTypeReference(
-                referencedClassName = irType.referencedClassName
+                referencedClassSimpleName = irType.getQualifiedNameIfPresent()
             ).apply {
                 nullable(false)
             }.build()
@@ -266,7 +267,7 @@ class KMPInstanceGetterImplsMapper internal constructor(
         val elementType = irType.elementType
 
         if (elementType is IrTypePrimitive
-            || elementType is IrTypeReference && elementType.referencedClassName == "kotlin.String") {
+            || elementType is IrTypeReference && elementType.getQualifiedNameIfPresent() == "kotlin.String") {
             return irIdentifierExpression(
                 selector = irLiteralExpression(variableName).build()
             ).build()

@@ -64,7 +64,8 @@ internal fun convertExpression(
             if (selector is PsiClass) {
                 irTypeReferenceIdentifierExpression(
                     referencedType = irTypeReference(
-                        referencedClassName = selector.qualifiedName ?: "Ir:UnnamedClass"
+                        referencedClassSimpleName = selector.name ?: "Ir:UnnamedClass",
+                        referencedClassQualifiedName = selector.qualifiedName ?: "Ir:UnnamedClass",
                     ).build(),
                 ).build()
             } else {

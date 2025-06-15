@@ -79,6 +79,7 @@ internal fun convertExpression(
 
         is KtSimpleNameExpression -> {
             val target = this@BindingContext.get(BindingContext.REFERENCE_TARGET, ktExpression)
+            val targetSimpleName = target?.name?.asString() ?: "Ir:UnnamedClass"
             val targetFqName = target?.fqNameSafe?.asString()
 
             // first, check if the reference is a class (then we should import it)
@@ -87,7 +88,8 @@ internal fun convertExpression(
             ) {
                 return irTypeReferenceIdentifierExpression(
                     referencedType = irTypeReference(
-                        referencedClassName = targetFqName
+                        referencedClassSimpleName = targetSimpleName,
+                        referencedClassQualifiedName = targetFqName
                     ).apply {
                         nullable(false)
                     }.build()

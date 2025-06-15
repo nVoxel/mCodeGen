@@ -211,11 +211,11 @@ fun mapSwiftBoxes(
 private fun convertIrTypeToSwiftExportType(irType: IrType, namePrefix: String, optional: Boolean = true): TypeName {
     return when (irType) {
         is IrTypeReference -> {
-            if (irType.referencedClassName == "java.lang.String") {
+            if (irType.getQualifiedNameIfPresent() == "java.lang.String") {
                 DeclaredTypeName.typeName("Swift.String").let { if (optional) it.makeOptional() else it }
             } else {
                 DeclaredTypeName
-                    .typeName("TGDriveKit.${namePrefix}${irType.referencedClassName.substringAfterLast(".")}")
+                    .typeName("TGDriveKit.${namePrefix}${irType.getQualifiedNameIfPresent().substringAfterLast(".")}")
                     .let { if (optional) it.makeOptional() else it }
             }
         }
