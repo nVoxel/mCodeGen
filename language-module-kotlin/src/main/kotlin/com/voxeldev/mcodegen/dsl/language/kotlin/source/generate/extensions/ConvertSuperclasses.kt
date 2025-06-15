@@ -23,7 +23,7 @@ internal fun convertSuperClasses(
     }
 
     extends?.let {
-        val superClassName = ClassName.bestGuess(extends.superClassName)
+        val superClassName = ClassName.bestGuess(extends.getQualifiedNameIfPresent())
         val superClassTypes = extends.types.map { typeParam ->
             convertType(typeParam)
         }
@@ -38,7 +38,7 @@ internal fun convertSuperClasses(
     val implements = superClasses.filter { it.kind == IrInterfaceClassKind }
 
     implements.forEach { implementedInterface ->
-        val superInterfaceName = ClassName.bestGuess(implementedInterface.superClassName)
+        val superInterfaceName = ClassName.bestGuess(implementedInterface.getQualifiedNameIfPresent())
         val superInterfaceTypes = implementedInterface.types.map { typeParam ->
             convertType(typeParam)
         }

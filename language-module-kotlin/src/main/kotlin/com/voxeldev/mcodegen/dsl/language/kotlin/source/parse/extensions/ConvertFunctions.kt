@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
+import org.jetbrains.kotlin.psi.KtTypeParameter
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.inference.returnTypeOrNothing
 import org.jetbrains.kotlin.types.isError
@@ -92,6 +93,7 @@ internal fun convertFunction(
                 name = parameter.name ?: "Ir:UnnamedParameter",
                 type = convertParameterType(
                     ktClassOrObject = ktClassOrObject,
+                    ktFunctionTypeParameters = ktFunction.typeParameters,
                     ktParameter = parameter,
                 ),
             ).apply {
@@ -307,15 +309,19 @@ private fun convertFunctionType(
 context(KotlinModule, BindingContext, ScenarioScope)
 private fun convertParameterType(
     ktClassOrObject: KtClassOrObject?,
+    ktFunctionTypeParameters: List<KtTypeParameter>,
     ktParameter: KtParameter,
 ): IrType {
-    val preloadedTypeParameters = ktClassOrObject?.let {
+    val preloadedClassTypeParameters = ktClassOrObject?.let {
         preloadTypeParameters(ktClassOrObject.typeParameters)
     } ?: emptyMap()
+    val preloadedFunctionTypeParameters = preloadTypeParameters(ktFunctionTypeParameters)
+
+    val allTypeParameters = preloadedClassTypeParameters + preloadedFunctionTypeParameters
 
     // try to convert explicit type
     ktParameter.typeReference?.typeElement?.let { typeElement ->
-        return convertKtTypeElement(typeElement, preloadedTypeParameters)
+        return convertKtTypeElement(typeElement, allTypeParameters)
     }
 
     // try to convert inferred type
@@ -328,5 +334,5 @@ private fun convertParameterType(
         )
     }
 
-    return convertKotlinType(parameterDescriptor.returnTypeOrNothing, preloadedTypeParameters)
+    return convertKotlinType(parameterDescriptor.returnTypeOrNothing, allTypeParameters)
 }

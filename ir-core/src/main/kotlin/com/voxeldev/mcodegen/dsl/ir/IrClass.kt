@@ -38,13 +38,23 @@ interface IrClassKind {
 }
 
 data class IrSuperClass(
-    val superClassName: String,
+    val superClassSimpleName: String,
+    val superClassQualifiedName: String?,
     val kind: IrClassKind,
     val types: List<IrType>,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
     override val languageProperties: Map<String, Any> = emptyMap()
-) : IrElement
+) : IrElement {
+
+    /**
+     * @return Qualified super class name or simple super class name if qualified is null
+     */
+    fun getQualifiedNameIfPresent(): String = superClassQualifiedName ?: run {
+        println("IrSuperClass qualified name was null: $superClassSimpleName")
+        superClassSimpleName
+    }
+}
 
 data class IrField(
     val name: String,

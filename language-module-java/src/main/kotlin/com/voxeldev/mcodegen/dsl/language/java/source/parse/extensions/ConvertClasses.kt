@@ -86,7 +86,8 @@ private fun convertClass(psiClass: PsiClass): IrClass {
         val resolvedClass = type.resolve() ?: return@forEach
         irClassBuilder.addSuperClass(
             irSuperClass(
-                superClassName = resolvedClass.qualifiedName ?: "Ir:UnnamedClass",
+                superClassSimpleName = resolvedClass.name ?: "Ir:UnnamedClass",
+                superClassQualifiedName = resolvedClass.qualifiedName ?: "Ir:UnnamedClass",
                 kind = if (resolvedClass.isInterface) IrInterfaceClassKind else IrClassClassKind,
             ).apply {
                 // TODO: support inheritance cases with types like List<T>
@@ -97,7 +98,8 @@ private fun convertClass(psiClass: PsiClass): IrClass {
         val resolvedInterface = type.resolve() ?: return@forEach
         irClassBuilder.addSuperClass(
             irSuperClass(
-                superClassName = resolvedInterface.qualifiedName ?: "Ir:UnnamedClass",
+                superClassSimpleName = resolvedInterface.name ?: "Ir:UnnamedClass",
+                superClassQualifiedName = resolvedInterface.qualifiedName ?: "Ir:UnnamedClass",
                 kind = if (resolvedInterface.isInterface) IrInterfaceClassKind else IrClassClassKind,
             ).apply {
                 // TODO: support inheritance cases with types like List<T>

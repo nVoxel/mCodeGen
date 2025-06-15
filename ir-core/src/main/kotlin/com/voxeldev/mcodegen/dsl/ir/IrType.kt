@@ -21,7 +21,10 @@ data class IrTypeReference(
     /**
      * @return Qualified referenced class name or simple referenced class name if qualified is null
      */
-    fun getQualifiedNameIfPresent(): String = referencedClassQualifiedName ?: referencedClassSimpleName
+    fun getQualifiedNameIfPresent(): String = referencedClassQualifiedName ?: run {
+        println("IrTypeReference qualified name was null: $referencedClassSimpleName")
+        referencedClassSimpleName
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

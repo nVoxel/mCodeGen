@@ -92,15 +92,21 @@ class IrClassBuilder internal constructor(
 }
 
 fun irSuperClass(
-    superClassName: String,
+    superClassSimpleName: String,
+    superClassQualifiedName: String? = null,
     kind: IrClassKind,
-): IrSuperClassBuilder = IrSuperClassBuilder(superClassName, kind)
+): IrSuperClassBuilder = IrSuperClassBuilder(superClassSimpleName, superClassQualifiedName, kind)
 
 class IrSuperClassBuilder internal constructor(
-    private val superClassName: String,
+    private val superClassSimpleName: String,
+    private var superClassQualifiedName: String?,
     private val kind: IrClassKind,
 ) : IrElementBuilder() {
     private var types: MutableList<IrType> = mutableListOf()
+
+    fun superClassQualifiedName(superClassQualifiedName: String) {
+        this.superClassQualifiedName = superClassQualifiedName
+    }
 
     fun addType(type: IrType) {
         this.types.add(type)
@@ -108,7 +114,8 @@ class IrSuperClassBuilder internal constructor(
 
     fun build(): IrSuperClass {
         return IrSuperClass(
-            superClassName = superClassName,
+            superClassSimpleName = superClassSimpleName,
+            superClassQualifiedName = superClassQualifiedName,
             kind = kind,
             types = types,
             location = location,

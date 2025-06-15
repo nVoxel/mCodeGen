@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.psi.KtFunctionType
 import org.jetbrains.kotlin.psi.KtNullableType
@@ -156,6 +157,7 @@ private fun convertUserType(
     val fqName = when (descriptor) {
         is ClassDescriptor -> descriptor.fqNameSafe.asString()
         is ClassConstructorDescriptor -> descriptor.containingDeclaration.fqNameSafe.asString()
+        is TypeAliasDescriptor -> descriptor.fqNameSafe.asString()
         else -> null
     }
 

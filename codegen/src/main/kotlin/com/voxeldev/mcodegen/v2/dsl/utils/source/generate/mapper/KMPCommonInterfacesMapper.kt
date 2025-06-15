@@ -63,11 +63,16 @@ class KMPCommonInterfacesMapper internal constructor(
                 visibility(irClass.visibility)
 
                 irClass.superClasses.firstOrNull { it.kind == IrClassClassKind }?.let { superClass ->
-                    val newSuperInterfaceName = convertClassName(superClass.superClassName, newPackage, namePrefix)
+                    val newSuperInterfaceName = convertClassName(
+                        className = superClass.getQualifiedNameIfPresent(),
+                        packageName = newPackage,
+                        namePrefix = namePrefix,
+                    )
 
                     addSuperClass(
                         irSuperClass(
-                            superClassName = newSuperInterfaceName,
+                            superClassSimpleName = "${namePrefix}${superClass.superClassSimpleName}",
+                            superClassQualifiedName = newSuperInterfaceName,
                             kind = IrClassKind.IrInterfaceClassKind,
                         ).build()
                     )

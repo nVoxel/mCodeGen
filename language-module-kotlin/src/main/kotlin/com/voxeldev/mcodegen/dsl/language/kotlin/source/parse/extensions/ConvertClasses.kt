@@ -191,6 +191,7 @@ private fun convertSuperclass(
     ktClassOrObject: KtClassOrObject,
     classDescriptor: ClassDescriptor,
 ): IrSuperClass? {
+    val simpleName = classDescriptor.name.asString()
     val fqName = classDescriptor.fqNameSafe.asString()
     if (ktClassOrObject.isAnnotation() && fqName == "kotlin.Annotation") {
         return null
@@ -198,7 +199,8 @@ private fun convertSuperclass(
 
     return createSuperClassFromSuper(
         ktClassOrObject = ktClassOrObject,
-        superClassName = fqName,
+        superClassSimpleName = simpleName,
+        superClassQualifiedName = fqName,
         superClassKind = if (classDescriptor.kind == ClassKind.INTERFACE) IrInterfaceClassKind else IrClassClassKind
     )
 }
@@ -206,10 +208,15 @@ private fun convertSuperclass(
 context(KotlinModule, BindingContext, ScenarioScope)
 private fun createSuperClassFromSuper(
     ktClassOrObject: KtClassOrObject,
-    superClassName: String,
+    superClassSimpleName: String,
+    superClassQualifiedName: String,
     superClassKind: IrClassKind,
 ): IrSuperClass {
-    val irSuperClassBuilder = irSuperClass(superClassName, superClassKind)
+    val irSuperClassBuilder = irSuperClass(
+        superClassSimpleName = superClassSimpleName,
+        superClassQualifiedName = superClassQualifiedName,
+        kind = superClassKind,
+    )
 
     val preloadedTypeParameters = preloadTypeParameters(ktClassOrObject.typeParameters)
     val superAsType = ktClassOrObject.superTypeListEntries
@@ -220,7 +227,7 @@ private fun createSuperClassFromSuper(
                 preloadedTypeParameters
             ) as? IrTypeReference
         }
-        .find { superTypeReference -> superTypeReference.getQualifiedNameIfPresent() == superClassName }
+        .find { superTypeReference -> superTypeReference.getQualifiedNameIfPresent() == superClassQualifiedName }
         ?: throw IllegalArgumentException("Unable to find superclass in ktClassOrObject by name")
 
     superAsType.typeParameters.forEach { typeParameter ->

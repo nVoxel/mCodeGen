@@ -76,7 +76,8 @@ class KMPInstanceGetterImplsMapper internal constructor(
 
                 addSuperClass(
                     irSuperClass(
-                        superClassName = convertClassName(irClass.simpleName, newPackage, namePrefix)
+                        superClassSimpleName = "InstanceGetter",
+                        superClassQualifiedName = convertClassName(irClass.simpleName, newPackage, namePrefix)
                                 + ".InstanceGetter",
                         kind = IrClassKind.IrInterfaceClassKind,
                     ).build()

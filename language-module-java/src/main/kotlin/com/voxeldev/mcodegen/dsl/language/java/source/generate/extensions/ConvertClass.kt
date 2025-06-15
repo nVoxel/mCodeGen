@@ -62,14 +62,14 @@ internal fun convertClass(irClass: IrClass): TypeSpec {
 
         extends?.let {
             // TODO: support inheritance cases with types like List<T> using ParameterizedTypeName
-            superclass(ClassName.bestGuess(extends.superClassName))
+            superclass(ClassName.bestGuess(extends.getQualifiedNameIfPresent()))
         }
 
         val implements = irClass.superClasses.filter { it.kind == IrInterfaceClassKind }
 
         implements.forEach { implementedInterface ->
             // TODO: support inheritance cases with types like List<T> using ParameterizedTypeName
-            addSuperinterface(ClassName.bestGuess(implementedInterface.superClassName))
+            addSuperinterface(ClassName.bestGuess(implementedInterface.getQualifiedNameIfPresent()))
         }
 
         convertFields(irClass, irClass.fields, this)
