@@ -18,6 +18,7 @@ dependencies {
     implementation(projects.dslUtils)
     implementation(projects.languageModuleJava)
     implementation(projects.languageModuleKotlin)
+    implementation(projects.languageModuleSwift)
 }
 
 kotlin {

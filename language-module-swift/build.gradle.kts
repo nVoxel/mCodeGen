@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation(libs.kotlin.compiler) // used only for KtTokens
+
     implementation(libs.swiftpoet)
 
     implementation(projects.dslCore)
