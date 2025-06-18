@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/dsl-core" />
             <option value="$PROJECT_DIR$/dsl-utils" />
             <option value="$PROJECT_DIR$/ir-core" />
+            <option value="$PROJECT_DIR$/ir-utils" />
             <option value="$PROJECT_DIR$/language-module-java" />
             <option value="$PROJECT_DIR$/language-module-kotlin" />
             <option value="$PROJECT_DIR$/language-module-swift" />

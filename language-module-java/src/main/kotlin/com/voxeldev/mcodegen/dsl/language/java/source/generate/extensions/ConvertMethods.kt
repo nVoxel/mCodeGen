@@ -8,7 +8,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrInterfaceClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrConstructor
 import com.voxeldev.mcodegen.dsl.ir.IrExpression
-import com.voxeldev.mcodegen.dsl.ir.IrMethod
+import com.voxeldev.mcodegen.dsl.ir.IrCallable
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityProtected
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
@@ -21,7 +21,7 @@ import javax.lang.model.element.Modifier
 context(JavaModule, ScenarioScope)
 internal fun convertMethods(
     irClass: IrClass,
-    irMethods: List<IrMethod>,
+    irMethods: List<IrCallable>,
     poetClassBuilder: TypeSpec.Builder,
 ) {
     irMethods.forEach { irMethod ->
@@ -32,7 +32,7 @@ internal fun convertMethods(
 context(JavaModule, ScenarioScope)
 private fun convertMethod(
     irClass: IrClass,
-    irMethod: IrMethod,
+    irMethod: IrCallable,
 ): MethodSpec {
     val poetMethod = if (irMethod is IrConstructor) {
         MethodSpec.constructorBuilder()

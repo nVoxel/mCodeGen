@@ -24,9 +24,10 @@ fun main() {
         name = "Tests scenario",
         configuration = testsScenarioConfiguration,
     ) {
-        runJavaTests()
-        runKotlinTests()
-        runKotlinSwiftTests()
+        //runJavaTests()
+        //runKotlinTests()
+        //runKotlinSwiftTests()
+        runSwiftTests()
     }
 
     val configuration = scenarioManagerConfiguration {
@@ -151,4 +152,10 @@ private fun runKotlinSwiftTests() {
 
     val testTopLevelDeclarationsIR by kotlinSwiftTests
     SwiftModule.generate(testTopLevelDeclarationsIR, "kotlin-swift", listOf())
+}
+
+context(ScenarioScope)
+private fun runSwiftTests() {
+    val testIR = SwiftModule.parse("swift/test.swift")
+    SwiftModule.generate(testIR, "swift", listOf())
 }

@@ -1,11 +1,11 @@
 package com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions
 
-import com.voxeldev.mcodegen.dsl.ir.IrMethod
+import com.voxeldev.mcodegen.dsl.ir.IrCallable
 import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.IrType
 import com.voxeldev.mcodegen.dsl.ir.builders.IrClassBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.IrConstructorBuilder
-import com.voxeldev.mcodegen.dsl.ir.builders.IrMethodBuilder
+import com.voxeldev.mcodegen.dsl.ir.builders.IrCallableBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.IrParameterBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irConstructor
 import com.voxeldev.mcodegen.dsl.ir.builders.irMethod
@@ -54,7 +54,7 @@ context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertFunction(
     ktClassOrObject: KtClassOrObject?,
     ktFunction: KtFunction,
-): IrMethod {
+): IrCallable {
     val isConstructor = ktFunction is KtPrimaryConstructor || ktFunction is KtSecondaryConstructor
 
     val irMethodBuilder = if (isConstructor) {
@@ -182,7 +182,7 @@ internal fun convertFunction(
 context(KotlinModule, BindingContext, ScenarioScope)
 private fun convertFunctionModifiers(
     ktFunction: KtFunction,
-    irMethodBuilder: IrMethodBuilder,
+    irMethodBuilder: IrCallableBuilder,
 ) {
     irMethodBuilder.visibility(
         when {

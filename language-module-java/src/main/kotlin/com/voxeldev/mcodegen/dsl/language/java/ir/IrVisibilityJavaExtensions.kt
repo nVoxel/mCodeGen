@@ -25,7 +25,7 @@ fun javaProtectedVisibility(): IrVisibilityProtected = IrVisibilityProtected(
     )
 )
 
-fun javaPackagePrivateVisibility(): IrVisibilityPackagePrivate = IrVisibilityPackagePrivate()
+fun javaPackagePrivateVisibility(): IrVisibilityPublic = javaPublicVisibility()
 
 fun javaPrivateVisibility(): IrVisibilityPrivate = IrVisibilityPrivate(
     listOf(

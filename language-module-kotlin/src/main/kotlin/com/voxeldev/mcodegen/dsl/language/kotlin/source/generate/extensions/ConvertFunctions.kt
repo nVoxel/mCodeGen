@@ -7,7 +7,7 @@ import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.voxeldev.mcodegen.dsl.ir.IrConstructor
-import com.voxeldev.mcodegen.dsl.ir.IrMethod
+import com.voxeldev.mcodegen.dsl.ir.IrCallable
 import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.IrParameter
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityInternal
@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 
 context(KotlinModule, ScenarioScope)
 internal fun convertFunctions(
-    irMethods: List<IrMethod>,
+    irMethods: List<IrCallable>,
     poetClassBuilder: TypeSpec.Builder,
 ) {
     irMethods.forEach { irMethod ->
@@ -37,7 +37,7 @@ internal fun convertFunctions(
 
 context(KotlinModule, ScenarioScope)
 internal fun convertFunction(
-    irMethod: IrMethod,
+    irMethod: IrCallable,
 ) : FunSpec {
     val poetFun = if (irMethod is IrConstructor) {
         FunSpec.constructorBuilder()
@@ -135,7 +135,7 @@ private fun convertPrimaryConstructor(
 }
 
 context(KotlinModule, ScenarioScope)
-private fun getModifiers(irMethod: IrMethod): List<KModifier> {
+private fun getModifiers(irMethod: IrCallable): List<KModifier> {
     return buildList {
         when(irMethod.visibility) {
             is IrVisibilityProtected -> add(KModifier.PROTECTED)

@@ -6,7 +6,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrClassInitializer.IrClassInitializerKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrClassKind.IrClassClassKind
 import com.voxeldev.mcodegen.dsl.ir.IrField
-import com.voxeldev.mcodegen.dsl.ir.IrMethod
+import com.voxeldev.mcodegen.dsl.ir.IrCallable
 import com.voxeldev.mcodegen.dsl.ir.IrMethodBody
 import com.voxeldev.mcodegen.dsl.ir.IrStatement
 import com.voxeldev.mcodegen.dsl.ir.IrSuperClass
@@ -36,7 +36,7 @@ class IrClassBuilder internal constructor(
     private var typeParameters: MutableList<IrTypeParameter> = mutableListOf()
     private var superClasses: MutableList<IrSuperClass> = mutableListOf()
     private var fields: MutableList<IrField> = mutableListOf()
-    private var methods: MutableList<IrMethod> = mutableListOf()
+    private var methods: MutableList<IrCallable> = mutableListOf()
     private var initializers: MutableList<IrClassInitializer> = mutableListOf()
     private var nestedClasses: MutableList<IrClass> = mutableListOf()
 
@@ -60,7 +60,7 @@ class IrClassBuilder internal constructor(
         fields.add(field)
     }
 
-    fun addMethod(method: IrMethod) {
+    fun addMethod(method: IrCallable) {
         methods.add(method)
     }
 

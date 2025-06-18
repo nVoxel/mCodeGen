@@ -1,5 +1,8 @@
 package com.voxeldev.mcodegen.dsl.ir
 
+import com.voxeldev.mcodegen.dsl.ir.utils.MapStringAnySerializer
+import kotlinx.serialization.Serializable
+
 /**
  * Base class for all types in the IR (Intermediate Representation) system.
  * This class represents the type system used in the code generation process.
@@ -8,13 +11,15 @@ interface IrType : IrElement {
     val isNullable: Boolean
 }
 
+@Serializable
 data class IrTypeReference(
     val referencedClassSimpleName: String,
-    val referencedClassQualifiedName: String?,
+    val referencedClassQualifiedName: String? = null,
     val typeParameters: List<IrType>,
     override val isNullable: Boolean = true,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
+    @Serializable(with = MapStringAnySerializer::class)
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrType {
 
@@ -51,54 +56,65 @@ data class IrTypeReference(
     }
 }
 
+@Serializable
 data class IrTypePrimitive(
     val primitiveType: PrimitiveType,
     override val isNullable: Boolean = true,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
+    @Serializable(with = MapStringAnySerializer::class)
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrType {
     interface PrimitiveType {
+        @Serializable
         open class Void : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
             override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
+        @Serializable
         open class Boolean : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
             override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
+        @Serializable
         open class Byte : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
             override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
+        @Serializable
         open class Short : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
             override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
+        @Serializable
         open class Int : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
             override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
+        @Serializable
         open class Long : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
             override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
+        @Serializable
         open class Char : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
             override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
+        @Serializable
         open class Float : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
             override fun hashCode(): kotlin.Int = javaClass.hashCode()
         }
 
+        @Serializable
         open class Double : PrimitiveType {
             override fun equals(other: Any?): kotlin.Boolean = checkEquality(this, other)
             override fun hashCode(): kotlin.Int = javaClass.hashCode()
@@ -132,20 +148,20 @@ data class IrTypePrimitive(
         result = 31 * result + annotations.hashCode()
         return result
     }
-
-
 }
 
 /**
  * Represents a function type in the IR (Intermediate Representation) system.
  * Function types represent the signature of a function, including its parameter types and return type.
  */
+@Serializable
 data class IrTypeFunction(
     val parameterTypes: List<IrType>,
     val returnType: IrType,
     override val isNullable: Boolean = true,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
+    @Serializable(with = MapStringAnySerializer::class)
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrType {
 
@@ -172,11 +188,13 @@ data class IrTypeFunction(
     }
 }
 
+@Serializable
 data class IrTypeArray(
     val elementType: IrType,
     override val isNullable: Boolean = true,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
+    @Serializable(with = MapStringAnySerializer::class)
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrType {
 
@@ -201,11 +219,13 @@ data class IrTypeArray(
     }
 }
 
+@Serializable
 data class IrTypeGeneric(
     val name: String,
     override val isNullable: Boolean = true,
     override val location: IrLocation? = null,
     override val annotations: List<IrAnnotation> = emptyList(),
+    @Serializable(with = MapStringAnySerializer::class)
     override val languageProperties: Map<String, Any> = emptyMap()
 ) : IrType {
 

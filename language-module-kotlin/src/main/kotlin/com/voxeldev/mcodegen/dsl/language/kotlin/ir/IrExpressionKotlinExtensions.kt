@@ -42,12 +42,7 @@ data class IrLambdaExpression(
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
     override val languageProperties: Map<String, Any>,
-) : IrExpression(
-    stringRepresentation = stringRepresentation,
-    location = location,
-    annotations = annotations,
-    languageProperties = languageProperties,
-)
+) : IrExpression()
 
 /**
  * An expression that wraps other statement (KtExpression) in brackets.
@@ -58,12 +53,7 @@ data class IrParenthesizedExpression(
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
     override val languageProperties: Map<String, Any>,
-) : IrExpression(
-    stringRepresentation = stringRepresentation,
-    location = location,
-    annotations = annotations,
-    languageProperties = languageProperties,
-)
+) : IrExpression()
 
 /**
  * An expression for null safe access in Kotlin. For example: someNullable?.value
@@ -75,9 +65,4 @@ data class IrNullSafeExpression(
     override val location: IrLocation?,
     override val annotations: List<IrAnnotation>,
     override val languageProperties: Map<String, Any>,
-) : IrExpression(
-    stringRepresentation = stringRepresentation,
-    location = location,
-    annotations = annotations,
-    languageProperties = languageProperties,
-)
+) : IrExpression()

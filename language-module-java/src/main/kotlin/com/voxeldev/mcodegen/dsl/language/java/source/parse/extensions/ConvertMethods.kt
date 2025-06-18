@@ -1,6 +1,6 @@
 package com.voxeldev.mcodegen.dsl.language.java.source.parse.extensions
 
-import com.voxeldev.mcodegen.dsl.ir.IrMethod
+import com.voxeldev.mcodegen.dsl.ir.IrCallable
 import com.voxeldev.mcodegen.dsl.ir.IrMethodCallExpression
 import com.voxeldev.mcodegen.dsl.ir.builders.IrClassBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.IrConstructorBuilder
@@ -31,7 +31,7 @@ internal fun convertMethods(psiClass: PsiClass, psiMethods: Array<PsiMethod>, ir
 }
 
 context(JavaModule, ScenarioScope)
-internal fun convertMethod(psiClass: PsiClass, psiMethod: PsiMethod): IrMethod {
+internal fun convertMethod(psiClass: PsiClass, psiMethod: PsiMethod): IrCallable {
     val irMethodBuilder = if (psiMethod.isConstructor) {
         irConstructor(
             name = psiMethod.name,

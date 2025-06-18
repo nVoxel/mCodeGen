@@ -1,17 +1,20 @@
 package com.voxeldev.mcodegen.dsl.language.swift
 
+import com.voxeldev.mcodegen.dsl.ir.IrCallable
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrField
 import com.voxeldev.mcodegen.dsl.ir.IrFile
-import com.voxeldev.mcodegen.dsl.ir.IrMethod
 import com.voxeldev.mcodegen.dsl.language.base.LanguageModule
+import com.voxeldev.mcodegen.dsl.language.swift.ir.serialization.allSerializers
 import com.voxeldev.mcodegen.dsl.scenario.ScenarioScope
+import com.voxeldev.mcodegen.dsl.scenario.scenarioScopeDto
 import com.voxeldev.mcodegen.dsl.source.edit.scenario.EditScenario
 import com.voxeldev.mcodegen.dsl.source.generate.mapper.GenerationMapper
-import com.voxeldev.mcodegen.dsl.utils.GlobalFileUtils.asString
 import io.outfoxx.swiftpoet.FileSpec
-import java.io.File
+import kotlinx.serialization.json.Json
+import java.nio.file.Files
 import kotlin.io.path.Path
+import kotlin.io.path.pathString
 import com.voxeldev.mcodegen.dsl.language.swift.souce.generate.extensions.convertClass as convertIrClass
 import com.voxeldev.mcodegen.dsl.language.swift.souce.generate.extensions.convertField as convertIrField
 import com.voxeldev.mcodegen.dsl.language.swift.souce.generate.extensions.convertFunction as convertIrMethod
@@ -25,9 +28,50 @@ object SwiftModule : LanguageModule {
 
     override val languageName: String = "swift"
 
+    private val swiftCompanionExecPath = Path("swift-companion", ".build", "release", "swift-companion")
+
+    private val json = Json {
+        serializersModule = allSerializers
+        prettyPrint = true
+        encodeDefaults = true
+        ignoreUnknownKeys = true
+    }
+
+    /**
+     * Before using this method don't forget to build swift-companion tool using this command:
+     * `cd swift-companion &&  swift build -c release --product swift-companion`.
+     */
     context(ScenarioScope)
     override fun parse(sourcePath: String): IrFile {
-        TODO("Not yet implemented")
+        val scopeSerialized = Files.createTempFile("scenario-scope-", ".json").toFile()
+        scopeSerialized.writeText(
+            Json.encodeToString(
+                scenarioScopeDto(this@ScenarioScope),
+            )
+        )
+
+        val companionArgs = mapOf(
+            "-scope" to scopeSerialized.absolutePath,
+            "-source" to sourcePath,
+        ).flatMap { entry ->
+            listOf(entry.key, entry.value)
+        }.toTypedArray()
+
+        val swiftCompanionOutputJson = ProcessBuilder(
+            swiftCompanionExecPath.toAbsolutePath().pathString,
+            *companionArgs,
+        )
+            .redirectOutput(ProcessBuilder.Redirect.PIPE)
+            .start()
+            .inputStream
+            .readAllBytes()
+            .decodeToString()
+
+        return runCatching {
+            json.decodeFromString<IrFile>(swiftCompanionOutputJson)
+        }.getOrElse {
+            error("Failed to decode swift-companion response JSON. Output was:\n$swiftCompanionOutputJson")
+        }
     }
 
     context(ScenarioScope)
@@ -49,7 +93,7 @@ object SwiftModule : LanguageModule {
                     poetFileBuilder.addType(convertIrClass(declaration))
                 }
 
-                is IrMethod -> {
+                is IrCallable -> {
                     poetFileBuilder.addFunction(
                         convertIrMethod(
                             irMethod = declaration,
@@ -85,18 +129,6 @@ object SwiftModule : LanguageModule {
         sourcePath: String,
         editScenario: EditScenario
     ) {
-        val pathToFile = Path(scenarioConfiguration.sourcesDir, sourcePath)
-        val fileName = pathToFile.fileName.toString()
-
-        val initialCodeString = File(pathToFile.toString()).asString()
-
-        val modifiedCodeString = editScenario.getSteps().fold(initialCodeString) { acc, editStep ->
-            val editStepHandler = scenarioConfiguration.editStepHandlers[editStep.name]
-                ?: error("EditStepHandler for ${editStep.name} not found")
-            editStepHandler.handleAnyStep(editStep, acc)
-        }
-
-        val outputPath = Path(scenarioConfiguration.outputDir, fileName)
-        File(outputPath.toString()).writeText(modifiedCodeString)
+        TODO()
     }
 }

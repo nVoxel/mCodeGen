@@ -6,6 +6,7 @@ import com.voxeldev.mcodegen.dsl.ir.IrVisibilityInternal
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
 import com.voxeldev.mcodegen.dsl.language.swift.SwiftModule
+import kotlinx.serialization.Serializable
 
 fun swiftOpenVisibility(): IrVisibilityOpen = IrVisibilityOpen()
 
@@ -38,6 +39,7 @@ fun swiftPrivateVisibility(): IrVisibilityPrivate = IrVisibilityPrivate(
     )
 )
 
+@Serializable
 data class IrVisibilityOpen(
     override val stringRepresentation: List<IrStringRepresentation> = listOf(
         IrStringRepresentation(
@@ -47,6 +49,7 @@ data class IrVisibilityOpen(
     )
 ) : IrVisibility
 
+@Serializable
 data class IrVisibilityFileprivate(
     override val stringRepresentation: List<IrStringRepresentation> = listOf(
         IrStringRepresentation(

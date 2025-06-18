@@ -1,7 +1,7 @@
 package com.voxeldev.mcodegen.dsl.language.swift.souce.generate.extensions
 
 import com.voxeldev.mcodegen.dsl.ir.IrConstructor
-import com.voxeldev.mcodegen.dsl.ir.IrMethod
+import com.voxeldev.mcodegen.dsl.ir.IrCallable
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityInternal
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPrivate
 import com.voxeldev.mcodegen.dsl.ir.IrVisibilityPublic
@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 
 context(SwiftModule, ScenarioScope)
 internal fun convertFunctions(
-    irMethods: List<IrMethod>,
+    irMethods: List<IrCallable>,
     poetClassBuilder: TypeSpec.Builder,
     isTopLevel: Boolean = false,
 ) {
@@ -29,7 +29,7 @@ internal fun convertFunctions(
 
 context(SwiftModule, ScenarioScope)
 internal fun convertFunction(
-    irMethod: IrMethod,
+    irMethod: IrCallable,
     isTopLevel: Boolean,
 ) : FunctionSpec {
     val poetFunction = if (irMethod is IrConstructor) {
@@ -70,7 +70,7 @@ internal fun convertFunction(
 
 context(SwiftModule, ScenarioScope)
 private fun getModifiers(
-    irMethod: IrMethod,
+    irMethod: IrCallable,
     isTopLevel: Boolean,
 ): Array<Modifier> {
     return buildList {

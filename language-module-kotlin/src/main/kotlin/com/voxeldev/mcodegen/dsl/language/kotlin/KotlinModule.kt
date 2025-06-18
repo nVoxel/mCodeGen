@@ -4,7 +4,7 @@ import com.squareup.kotlinpoet.FileSpec
 import com.voxeldev.mcodegen.dsl.ir.IrClass
 import com.voxeldev.mcodegen.dsl.ir.IrField
 import com.voxeldev.mcodegen.dsl.ir.IrFile
-import com.voxeldev.mcodegen.dsl.ir.IrMethod
+import com.voxeldev.mcodegen.dsl.ir.IrCallable
 import com.voxeldev.mcodegen.dsl.ir.builders.irFile
 import com.voxeldev.mcodegen.dsl.language.base.LanguageModule
 import com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions.convertImports
@@ -167,7 +167,7 @@ object KotlinModule : LanguageModule {
                     poetFileBuilder.addType(convertIrClass(declaration))
                 }
 
-                is IrMethod -> {
+                is IrCallable -> {
                     poetFileBuilder.addFunction(convertIrMethod(declaration))
                 }
 

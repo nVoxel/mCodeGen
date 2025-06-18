@@ -3,7 +3,7 @@ package com.voxeldev.mcodegen.dsl.language.kotlin.source.parse.extensions
 import com.voxeldev.mcodegen.dsl.ir.IrTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.IrTypeParameter
 import com.voxeldev.mcodegen.dsl.ir.builders.IrClassBuilder
-import com.voxeldev.mcodegen.dsl.ir.builders.IrMethodBuilder
+import com.voxeldev.mcodegen.dsl.ir.builders.IrCallableBuilder
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeGeneric
 import com.voxeldev.mcodegen.dsl.ir.builders.irTypeParameter
 import com.voxeldev.mcodegen.dsl.language.kotlin.KotlinModule
@@ -21,7 +21,7 @@ context(KotlinModule, BindingContext, ScenarioScope)
 internal fun convertTypeParameters(
     ktClassOrObject: KtClassOrObject?,
     ktTypeParameters: List<KtTypeParameter>,
-    irMethodBuilder: IrMethodBuilder,
+    irMethodBuilder: IrCallableBuilder,
 ) {
     val preloadedTypeParameters = preloadTypeParameters(ktTypeParameters)
     ktTypeParameters.forEach { ktTypeParameter ->

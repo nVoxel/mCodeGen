@@ -7,6 +7,7 @@ kotlinpoet = "1.4.0"
 swiftpoet = "1.6.6"
 jna = "4.2.2"
 javaparser = "3.26.3"
+kotlinx-serialization-json = "1.8.1"
 
 kotlin-jvm = "2.0.21"
 
@@ -15,6 +16,8 @@ kotlin-jvm = "2.0.21"
 kotlin-jdk8 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version.ref = "kotlin-jdk8" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 kotlin-compiler = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
+
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 
 javapoet = { group = "com.squareup", name = "javapoet", version.ref = "javapoet" }
 kotlinpoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinpoet" }
@@ -25,4 +28,5 @@ javaparser = { group = "com.github.javaparser", name = "javaparser-symbol-solver
 
 [plugins]
 
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-jvm"}
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-jvm" }
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-jvm" }
