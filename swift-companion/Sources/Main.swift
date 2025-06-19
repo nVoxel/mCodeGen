@@ -1,8 +1,9 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
-// 
-// Swift Argument Parser
-// https://swiftpackageindex.com/apple/swift-argument-parser/documentation
+//
+//  Main.swift
+//  swift-companion
+//
+//  Created by nVoxel on 17.06.2025.
+//
 
 import Foundation
 import ArgumentParser
@@ -10,6 +11,8 @@ import SwiftParser
 import SwiftSyntax
 import SourceKittenFramework
 import SyntaxSparrow
+
+public let languageName = "swift"
 
 @main
 struct swift_companion: ParsableCommand {
@@ -38,14 +41,12 @@ struct swift_companion: ParsableCommand {
         let source = try String(contentsOf: pathToFile, encoding: .utf8)
         let syntaxTree = SyntaxTree(viewMode: .sourceAccurate, sourceBuffer: source)
         
-        let irClasses = wrapIrClasses(irClasses: syntaxTree.convertClasses())
-        let topLevelFields = wrapIrFields(irFields: syntaxTree.convertFields())
-        let topLevelFunctions = wrapIrMethods(irMethods: syntaxTree.convertFunctions())
+        syntaxTree.collectChildren()
         
         return IrFile(
             name: fileName,
             imports: [],
-            declarations: topLevelFields + topLevelFunctions + irClasses
+            declarations: syntaxTree.convertTopLevelDeclarations()
         )
     }
 }
